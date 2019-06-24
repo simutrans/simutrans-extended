@@ -206,6 +206,27 @@ const uint8 goods_manager_t::get_classes_catg_index(const uint8 catg_index)
 }
 
 
+const char * goods_desc_t::get_translated_wealth_name(const uint8 g_class = 0) const
+{
+	if (g_class > number_of_classes) {
+		return NULL;
+	}
+	char *class_name = new char[32]();
+	if (get_index() == goods_manager_t::INDEX_PAS)
+	{
+		sprintf(class_name, "p_class[%u]", g_class);
+	}
+	if (get_index() == goods_manager_t::INDEX_MAIL)
+	{
+		sprintf(class_name, "m_class[%u]", g_class);
+	}
+
+	static char translated_name[32];
+	sprintf(translated_name, "%s ", translator::translate(class_name));
+
+	return translated_name;
+}
+
 // adjuster for dummies ...
 void goods_manager_t::set_multiplier(sint32 multiplier, uint16 scale_factor)
 {
