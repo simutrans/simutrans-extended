@@ -2777,6 +2777,77 @@ uint32 haltestelle_t::get_ware_summe(const goods_desc_t *wtyp) const
 	return sum;
 }
 
+uint32 haltestelle_t::get_ware_summe(const goods_desc_t *wtyp, uint8 g_class) const
+{
+	if (g_class >= wtyp->get_number_of_classes()) {
+		return 0;
+	}
+	int sum = 0;
+	const vector_tpl<ware_t> * warray = cargo[wtyp->get_catg_index()];
+	if (warray != NULL) {
+		FOR(vector_tpl<ware_t>, const& i, *warray) {
+			if (wtyp->get_index() == i.get_index() && g_class == i.get_class()) {
+				sum += i.menge;
+			}
+		}
+	}
+	return sum;
+}
+
+
+uint32 haltestelle_t::get_transferring_goods_sum(const goods_desc_t *wtyp, uint8 g_class) const
+{
+	if (g_class >= wtyp->get_number_of_classes()) {
+		return 0;
+	}
+	int sum = 0;
+	ware_t ware;
+
+#ifdef MULTI_THREAD
+	sint32 po = world()->get_parallel_operations();
+#else
+	sint32 po = 1;
+#endif
+	for (sint32 i = 0; i < po; i++)
+	{
+		FOR(vector_tpl<transferring_cargo_t>, tc, transferring_cargoes[i])
+		{
+			ware = tc.ware;
+			if (wtyp->get_index() == ware.get_index() && g_class == ware.get_class()) {
+				sum += ware.menge;
+			}
+		}
+	}
+	return sum;
+}
+
+
+// transferring goods which leaving from the station @Ranran
+uint32 haltestelle_t::get_leaving_goods_sum(const goods_desc_t *wtyp, uint8 g_class) const
+{
+	if (g_class >= wtyp->get_number_of_classes()) {
+		return 0;
+	}
+	int sum = 0;
+	ware_t ware;
+
+#ifdef MULTI_THREAD
+	sint32 po = world()->get_parallel_operations();
+#else
+	sint32 po = 1;
+#endif
+	for (sint32 i = 0; i < po; i++)
+	{
+		FOR(vector_tpl<transferring_cargo_t>, tc, transferring_cargoes[i])
+		{
+			ware = tc.ware;
+			if (wtyp->get_index() == ware.get_index() && g_class == ware.get_class() && ware.get_zwischenziel() == self) {
+				sum += ware.menge;
+			}
+		}
+	}
+	return sum;
+}
 
 
 uint32 haltestelle_t::get_ware_fuer_zielpos(const goods_desc_t *wtyp, const koord zielpos) const
