@@ -409,7 +409,7 @@ void halt_detail_goods_t::draw(scr_coord offset)
 		{
 			int base_capacity = halt->get_capacity(2) ? max(halt->get_capacity(2),10) : 10; // Note that capacity may have 0 even if enabled
 			int waiting_sum = 0;
-			int transferring_sum = 0;
+			int transship_sum = 0;
 			int catg_cnt = 0;
 
 			// transfertime
@@ -448,7 +448,6 @@ void halt_detail_goods_t::draw(scr_coord offset)
 				const goods_desc_t *wtyp = goods_manager_t::get_info(i);
 				if (halt->gibt_ab(info)) {
 					uint32 waiting_sum_catg = 0;
-					uint32 transship_sum = 0;
 					uint32 transship_in_catg = 0;
 					uint32 leaving_sum_catg = 0;
 
@@ -537,11 +536,11 @@ void halt_detail_goods_t::draw(scr_coord offset)
 			display_proportional_clip(offset.x + D_BUTTON_WIDTH + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH, top, goods_info, ALIGN_RIGHT, color, true);
 			goods_info.clear();
 
-			goods_info.append(transferring_sum);
+			goods_info.append(transship_sum);
 			left += display_proportional_clip(offset.x + D_BUTTON_WIDTH + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 5, top, goods_info, ALIGN_RIGHT, SYSCOL_TEXT, true);
 			goods_info.clear();
 
-			goods_info.printf("  %u ", waiting_sum + transferring_sum);
+			goods_info.printf("  %u ", waiting_sum + transship_sum);
 			goods_info.printf(translator::translate("(max: %u)"), halt->get_capacity(2));
 			left += display_proportional_clip(offset.x + D_BUTTON_WIDTH + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top, goods_info, ALIGN_LEFT, SYSCOL_TEXT, true);
 			goods_info.clear();
