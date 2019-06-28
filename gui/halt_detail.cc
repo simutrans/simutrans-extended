@@ -30,6 +30,7 @@
 #define GOODS_WAITING_CELL_WIDTH 60
 #define GOODS_WAITING_BAR_BASE_WIDTH 160
 #define GOODS_LEAVING_BAR_HEIGHT 2
+#define BARCOL_TRANSFER_IN (10)
 
 halt_detail_t::halt_detail_t(halthandle_t halt_) :
 	gui_frame_t(halt_->get_name(), halt_->get_owner()),
@@ -48,13 +49,15 @@ halt_detail_t::halt_detail_t(halthandle_t halt_) :
 	//halt_detail_info();
 	//txt_info.set_pos(scr_coord(D_MARGIN_LEFT,D_MARGIN_TOP));
 
-	scrolly.set_show_scroll_x(false);
 
 	if(halt->get_pax_enabled() || halt->get_mail_enabled()){
 		tabs.add_tab(&scrolly, translator::translate("Passengers/mail"));
 	}
 	tabs.add_tab(&scrolly_goods, translator::translate("Goods"));
 	tabs.add_tab(&scrolly_lines, translator::translate("Services"));
+	scrolly.set_show_scroll_x(true);
+	scrolly_goods.set_show_scroll_x(true);
+	scrolly_lines.set_show_scroll_x(true);
 	tabs.set_pos(scr_coord(0, 0));
 
 	add_component(&tabs);
@@ -248,14 +251,15 @@ void halt_detail_pas_t::draw_class_table(scr_coord offset, const uint8 class_nam
 		uint8 overlay_transparency = abs(good_category->get_number_of_classes()/2 - i) * 7;
 		int bar_width = (halt->get_ware_summe(good_category, i) * GOODS_WAITING_BAR_BASE_WIDTH) / base_capacity;
 		// transferring bar
-		display_fillbox_wh_clip(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 1, (transfers_in * GOODS_WAITING_BAR_BASE_WIDTH / base_capacity) + bar_width, 6, MN_GREY0, true);
+		display_fillbox_wh_clip(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 1, (transfers_in * GOODS_WAITING_BAR_BASE_WIDTH / base_capacity) + bar_width, 6, BARCOL_TRANSFER_IN, true);
 		transferring_sum += halt->get_transferring_goods_sum(good_category, i);
 		// leaving bar
 		display_fillbox_wh_clip(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 8, transfers_out * GOODS_WAITING_BAR_BASE_WIDTH / base_capacity, GOODS_LEAVING_BAR_HEIGHT, MN_GREY0, true);
 		// waiting bar
 		display_fillbox_wh_clip(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 1, bar_width, 6, good_category->get_color(), true);
 		display_blend_wh(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 1, bar_width, 6, overlay_color, overlay_transparency);
-		display_blend_wh(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 6, bar_width, 1, COL_BLACK, 10);
+		display_blend_wh(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 1, bar_width, 1, COL_WHITE, 15);
+		display_blend_wh(offset.x + class_name_cell_width + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, y + 6, bar_width, 1, COL_BLACK, 15);
 
 		y += LINESPACE + GOODS_LEAVING_BAR_HEIGHT+1;
 
@@ -484,15 +488,16 @@ void halt_detail_goods_t::draw(scr_coord offset)
 								// waiting bar
 								if (bar_width) {
 									display_fillbox_wh_clip(offset.x + D_BUTTON_WIDTH + bar_offset_left + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 1, bar_width, 6, wtyp2->get_color(), true);
-									display_blend_wh(offset.x + D_BUTTON_WIDTH + bar_offset_left + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 6, bar_width, 1, COL_BLACK, 10);
 								}
 								bar_offset_left += bar_width;
 							}
 							break;
 					}
 					transship_sum += leaving_sum_catg + transship_in_catg;
+					display_blend_wh(offset.x + D_BUTTON_WIDTH + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 1, bar_offset_left, 1, COL_WHITE, 15);
+					display_blend_wh(offset.x + D_BUTTON_WIDTH + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 6, bar_offset_left, 1, COL_BLACK, 15);
 					// transferring bar
-					display_fillbox_wh_clip(offset.x + D_BUTTON_WIDTH + bar_offset_left + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 1, transship_in_catg * GOODS_WAITING_BAR_BASE_WIDTH / base_capacity, 6, MN_GREY0, true);
+					display_fillbox_wh_clip(offset.x + D_BUTTON_WIDTH + bar_offset_left + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 1, transship_in_catg * GOODS_WAITING_BAR_BASE_WIDTH / base_capacity, 6, BARCOL_TRANSFER_IN, true);
 					// leaving bar
 					display_fillbox_wh_clip(offset.x + D_BUTTON_WIDTH + GOODS_SYMBOL_CELL_WIDTH + GOODS_WAITING_CELL_WIDTH * 2 + 10, top + 8, leaving_sum_catg * GOODS_WAITING_BAR_BASE_WIDTH / base_capacity, GOODS_LEAVING_BAR_HEIGHT, MN_GREY0, true);
 
@@ -637,7 +642,7 @@ void halt_detail_goods_t::draw(scr_coord offset)
 				}
 
 				if (has_input_output<4) {
-					left += GOODS_SYMBOL_CELL_WIDTH * (4- has_input_output);
+					left += has_input_output ? (GOODS_SYMBOL_CELL_WIDTH - 2) * (4 - has_input_output) : (GOODS_SYMBOL_CELL_WIDTH - 2) * 5 + 2;
 				}
 				has_input_output = 0;
 				FOR(array_tpl<ware_production_t>, const& i, fab->get_output()) {
@@ -664,6 +669,10 @@ void halt_detail_goods_t::draw(scr_coord offset)
 						}
 					}
 					has_input_output++;
+				}
+				if (fab->get_sector() == fabrik_t::power_plant) {
+					left += GOODS_SYMBOL_CELL_WIDTH - 2;
+					display_color_img(skinverwaltung_t::electricity->get_image_id(0), offset.x + left, top, 0, false, false);
 				}
 
 				left = D_POS_BUTTON_WIDTH;
@@ -776,13 +785,11 @@ halt_detail_line_t::halt_detail_line_t(halthandle_t halt)
  */
 void halt_detail_line_t::draw(scr_coord offset)
 {
-	// keep previous maximum width
-	int x_size = get_size().w - 51 - pos.x;
 	karte_t *welt = world();
 	int top = offset.y + D_MARGIN_TOP;
 	offset.x += D_MARGIN_LEFT;
 	//int total_height = 0;
-	line_selected = 0xFFFFFFFFu;
+	line_selected = 0xFFFFFFFFu; // dummy
 
 	line_info.clear();
 	if (halt.is_bound()) {
@@ -839,10 +846,10 @@ void halt_detail_line_t::draw(scr_coord offset)
 				cont.add_component(l);
 				*/
 
-				// line name, convoy count(overcrowd->purple),
+				// line name with player color
 				offset_left += display_proportional_clip(offset_left, top, strdup(halt->registered_lines[i]->get_name()), ALIGN_LEFT, halt->registered_lines[i]->get_owner()->get_player_color1(), true) + D_H_SPACE*2;
 
-				// line handling goods (symbol)
+				// line handling goods (only symbol)
 				FOR(minivec_tpl<uint8>, const catg_index, halt->registered_lines[i]->get_goods_catg_index()) {
 					uint8 temp = catg_index;
 					display_color_img(goods_manager_t::get_info_catg_index(temp)->get_catg_symbol(), offset_left, top, 0, false, false);
@@ -853,7 +860,12 @@ void halt_detail_line_t::draw(scr_coord offset)
 
 				// convoy count(overcrowd->purple)
 				offset_left += display_proportional_clip(offset_left, top, "(", ALIGN_LEFT, SYSCOL_TEXT, true);
-				line_info.printf(translator::translate("%d convois"), halt->registered_lines[i]->count_convoys());
+				if (halt->registered_lines[i]->count_convoys() == 1) {
+					line_info.append(translator::translate("1 convoi"));
+				}
+				else {
+					line_info.printf(translator::translate("%d convois"), halt->registered_lines[i]->count_convoys());
+				}
 				offset_left += display_proportional_clip(offset_left, top, line_info, ALIGN_LEFT, halt->registered_lines[i]->has_overcrowded() ? COL_DARK_PURPLE : SYSCOL_TEXT, true);
 				line_info.clear();
 				offset_left += display_proportional_clip(offset_left, top, ", ", ALIGN_LEFT, SYSCOL_TEXT, true);
@@ -875,8 +887,6 @@ void halt_detail_line_t::draw(scr_coord offset)
 					}
 					offset_left += display_proportional_clip(offset_left, top, ")", ALIGN_LEFT, SYSCOL_TEXT, true) + D_H_SPACE;
 				}
-
-
 				top += LINESPACE;
 			}
 		}
@@ -915,10 +925,10 @@ void halt_detail_line_t::draw(scr_coord offset)
 				display_img_aligned(gui_theme_t::pos_button_img[sel == 0], scr_rect(offset.x, top, D_POS_BUTTON_WIDTH, LINESPACE), ALIGN_CENTER_V | ALIGN_CENTER_H, true);
 				sel--;
 
-				// lineless convoy name
+				// lineless convoy name with player color
 				offset_left += display_proportional_clip(offset_left, top, strdup(halt->registered_convoys[i]->get_name()), ALIGN_LEFT, halt->registered_convoys[i]->get_owner()->get_player_color1(), true) + D_H_SPACE*2;
 
-				// lineless conmvoy handling goods (symbol)
+				// lineless convoy handling goods (only symbol)
 				FOR(minivec_tpl<uint8>, const catg_index, halt->registered_convoys[i]->get_goods_catg_index()) {
 					uint8 temp = catg_index;
 					display_color_img(goods_manager_t::get_info_catg_index(temp)->get_catg_symbol(), offset_left, top, 0, false, false);
@@ -944,7 +954,6 @@ void halt_detail_line_t::draw(scr_coord offset)
 					}
 					offset_left += display_proportional_clip(offset_left, top, ")", ALIGN_LEFT, SYSCOL_TEXT, true);
 				}
-
 				top += LINESPACE;
 			}
 		}
@@ -1109,7 +1118,6 @@ void halt_detail_line_t::draw(scr_coord offset)
 								}
 							}
 						}
-
 						top += LINESPACE;
 					}
 				}
@@ -1144,8 +1152,9 @@ void halt_detail_line_t::draw(scr_coord offset)
 			top += LINESPACE;
 		}
 	}
+
 	top += D_MARGIN_TOP;
-	scr_size size(max(x_size + pos.x, get_size().w), top - offset.y);
+	scr_size size(max(D_BUTTON_WIDTH*5, get_size().w), top - offset.y);
 	if (size != get_size()) {
 		set_size(size);
 	}
