@@ -342,6 +342,9 @@ void halt_detail_pas_t::draw(scr_coord offset)
 			top += (mail_classes + 1) * (LINESPACE + GOODS_LEAVING_BAR_HEIGHT + 1) + 6;
 		}
 		
+		// TODO: change this to "nearby" info and add nearby atraction building info. and more population and jobs info
+		// Passengers can be further separated into commuters and visitors
+
 		top += D_MARGIN_TOP;
 
 		scr_size size(max(x_size + pos.x, get_size().w), top - offset.y);
@@ -396,9 +399,6 @@ bool halt_detail_goods_t::infowin_event(const event_t * ev)
 
 void halt_detail_goods_t::draw(scr_coord offset)
 {
-	// TODO: change this to "nearby" info and add nearby atraction building info. and more population and jobs info
-
-
 	// keep previous maximum width
 	int x_size = get_size().w - 51 - pos.x;
 	int top = offset.y + D_MARGIN_TOP;
@@ -675,6 +675,7 @@ void halt_detail_goods_t::draw(scr_coord offset)
 					display_color_img(skinverwaltung_t::electricity->get_image_id(0), offset.x + left, top, 0, false, false);
 				}
 
+
 				left = D_POS_BUTTON_WIDTH;
 				//top += LINESPACE+1;
 			}
@@ -819,75 +820,192 @@ void halt_detail_line_t::draw(scr_coord offset)
 
 		display_proportional_clip(offset.x, top, translator::translate("Lines serving this stop"), ALIGN_LEFT, SYSCOL_TEXT, true);
 		top += LINESPACE;
-		int offset_y = top;
+		//int offset_y = top; // dummy
 
 		if (!halt->registered_lines.empty()) {
 			uint32 sel = line_selected; // dummy
-			for (unsigned int i = 0; i < halt->registered_lines.get_count(); i++) {
-				int offset_left = offset.x + D_BUTTON_HEIGHT;
-				// Line buttons only if owner ...
-				if (welt->get_active_player() == halt->registered_lines[i]->get_owner()) {
-					button_t *b = new button_t();
-					b->init(button_t::posbutton, NULL, scr_coord(offset.x, top));
-					b->set_targetpos(koord(-1, i));
-					b->add_listener(this);
-					linebuttons.append(b);
-					cont.add_component(b);
-					// dummy
-					display_img_aligned(gui_theme_t::pos_button_img[sel == 0], scr_rect(offset.x, top, D_POS_BUTTON_WIDTH, LINESPACE), ALIGN_CENTER_V | ALIGN_CENTER_H, true);
-					sel--;
+
+			haltestelle_t::stationtyp const halttype = halt->get_station_type();
+			for (uint8 lt = 1; lt < simline_t::MAX_LINE_TYPE; lt++) {
+				uint waytype_line_cnt = 0;
+				// NOTE: waytype icon needs to adjust offset.
+				switch (lt) {
+					case simline_t::truckline:
+						if (halttype & haltestelle_t::loadingbay || halttype & haltestelle_t::busstop) {
+							int symbol_offset_x = 0;
+							top += D_V_SPACE;
+							if (halttype & haltestelle_t::busstop &&  skinverwaltung_t::bushaltsymbol) {
+								display_color_img(skinverwaltung_t::bushaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+								symbol_offset_x = 23;
+							}
+							if (halttype & haltestelle_t::loadingbay &&  skinverwaltung_t::autohaltsymbol) {
+								display_color_img(skinverwaltung_t::autohaltsymbol->get_image_id(0), offset.x - 20 + symbol_offset_x, top - 43, 0, false, false);
+								symbol_offset_x += 23;
+							}
+							display_proportional_clip(offset.x + D_V_SPACE + symbol_offset_x, top, translator::translate("Truck"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::trainline:
+						if (halttype & haltestelle_t::railstation && skinverwaltung_t::zughaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::zughaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Train"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::shipline:
+						if (halttype & haltestelle_t::dock && skinverwaltung_t::schiffshaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::schiffshaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Ship"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::airline:
+						if (halttype & haltestelle_t::airstop && skinverwaltung_t::airhaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::airhaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Air"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::monorailline:
+						if (halttype & haltestelle_t::monorailstop && skinverwaltung_t::monorailhaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::monorailhaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Monorail"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::tramline:
+						if (halttype & haltestelle_t::tramstop && skinverwaltung_t::tramhaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::tramhaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Tram"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::maglevline:
+						if (halttype & haltestelle_t::maglevstop && skinverwaltung_t::maglevhaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::maglevhaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Maglev"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					case simline_t::narrowgaugeline:
+						if (halttype & haltestelle_t::narrowgaugestop && skinverwaltung_t::narrowgaugehaltsymbol) {
+							top += D_V_SPACE;
+							display_color_img(skinverwaltung_t::narrowgaugehaltsymbol->get_image_id(0), offset.x - 20, top - 43, 0, false, false);
+							display_proportional_clip(offset.x + D_V_SPACE + 23, top, translator::translate("Narrowgauge"), ALIGN_LEFT, SYSCOL_TEXT, true);
+							top += LINESPACE + 2;
+						}
+						else {
+							continue;
+						}
+						break;
+					default:
+						continue;
+						break;
 				}
-				/*
-				// Line labels with color of player
-				label_names.append(strdup(halt->registered_lines[i]->get_name()));
-				gui_label_t *l = new gui_label_t(label_names.back(), PLAYER_FLAG | (halt->registered_lines[i]->get_owner()->get_player_color1() + 0));
-				l->set_pos(scr_coord(D_MARGIN_LEFT + D_BUTTON_HEIGHT + D_H_SPACE, top));
-				linelabels.append(l);
-				cont.add_component(l);
-				*/
 
-				// line name with player color
-				offset_left += display_proportional_clip(offset_left, top, strdup(halt->registered_lines[i]->get_name()), ALIGN_LEFT, halt->registered_lines[i]->get_owner()->get_player_color1(), true) + D_H_SPACE*2;
+				for (unsigned int i = 0; i < halt->registered_lines.get_count(); i++) {
+					if (halt->registered_lines[i]->get_linetype() != lt) {
+						continue;
+					}
 
-				// line handling goods (only symbol)
-				FOR(minivec_tpl<uint8>, const catg_index, halt->registered_lines[i]->get_goods_catg_index()) {
-					uint8 temp = catg_index;
-					display_color_img(goods_manager_t::get_info_catg_index(temp)->get_catg_symbol(), offset_left, top, 0, false, false);
-					offset_left += GOODS_SYMBOL_CELL_WIDTH;
-				}
+					int offset_left = offset.x + D_BUTTON_HEIGHT;
+					// Line buttons only if owner ...
+					if (welt->get_active_player() == halt->registered_lines[i]->get_owner()) {
+						button_t *b = new button_t();
+						b->init(button_t::posbutton, NULL, scr_coord(offset.x, top));
+						b->set_targetpos(koord(-1, i));
+						b->add_listener(this);
+						linebuttons.append(b);
+						cont.add_component(b);
+						// dummy
+						display_img_aligned(gui_theme_t::pos_button_img[sel == 0], scr_rect(offset.x, top, D_POS_BUTTON_WIDTH, LINESPACE), ALIGN_CENTER_V | ALIGN_CENTER_H, true);
+						sel--;
+					}
+					/*
+					// Line labels with color of player
+					label_names.append(strdup(halt->registered_lines[i]->get_name()));
+					gui_label_t *l = new gui_label_t(label_names.back(), PLAYER_FLAG | (halt->registered_lines[i]->get_owner()->get_player_color1() + 0));
+					l->set_pos(scr_coord(D_MARGIN_LEFT + D_BUTTON_HEIGHT + D_H_SPACE, top));
+					linelabels.append(l);
+					cont.add_component(l);
+					*/
 
-				offset_left = max(offset_left + D_H_SPACE, offset.x + D_BUTTON_WIDTH * 3);
+					// line name with player color
+					offset_left += display_proportional_clip(offset_left, top, strdup(halt->registered_lines[i]->get_name()), ALIGN_LEFT, halt->registered_lines[i]->get_owner()->get_player_color1(), true) + D_H_SPACE * 2;
 
-				// convoy count(overcrowd->purple)
-				offset_left += display_proportional_clip(offset_left, top, "(", ALIGN_LEFT, SYSCOL_TEXT, true);
-				if (halt->registered_lines[i]->count_convoys() == 1) {
-					line_info.append(translator::translate("1 convoi"));
-				}
-				else {
-					line_info.printf(translator::translate("%d convois"), halt->registered_lines[i]->count_convoys());
-				}
-				offset_left += display_proportional_clip(offset_left, top, line_info, ALIGN_LEFT, halt->registered_lines[i]->has_overcrowded() ? COL_DARK_PURPLE : SYSCOL_TEXT, true);
-				line_info.clear();
-				offset_left += display_proportional_clip(offset_left, top, ", ", ALIGN_LEFT, SYSCOL_TEXT, true);
+					// line handling goods (only symbol)
+					FOR(minivec_tpl<uint8>, const catg_index, halt->registered_lines[i]->get_goods_catg_index()) {
+						uint8 temp = catg_index;
+						display_color_img(goods_manager_t::get_info_catg_index(temp)->get_catg_symbol(), offset_left, top, 0, false, false);
+						offset_left += GOODS_SYMBOL_CELL_WIDTH;
+					}
 
-				// line service frequency. NOTE: Displayed only if pakset has a symbol due to display space
-				if (skinverwaltung_t::service_frequency) {
-					display_color_img(skinverwaltung_t::service_frequency->get_image_id(0), offset_left, top, 0, false, false);
-					offset_left += GOODS_SYMBOL_CELL_WIDTH;
-					if (halt->registered_lines[i]->get_service_frequency())
-					{
-						char as_clock[32];
-						welt->sprintf_ticks(as_clock, sizeof(as_clock), halt->registered_lines[i]->get_service_frequency());
-						line_info.append(as_clock);
-						offset_left += display_proportional_clip(offset_left, top, line_info, ALIGN_LEFT, halt->registered_lines[i]->get_state() == simline_t::line_missing_scheduled_slots ? halt->registered_lines[i]->get_state_color() : SYSCOL_TEXT, true);
-						line_info.clear();
+					offset_left = max(offset_left + D_H_SPACE, offset.x + D_BUTTON_WIDTH * 3);
+
+					// convoy count(overcrowd->purple)
+					offset_left += display_proportional_clip(offset_left, top, "(", ALIGN_LEFT, SYSCOL_TEXT, true);
+					if (halt->registered_lines[i]->count_convoys() == 1) {
+						line_info.append(translator::translate("1 convoi"));
 					}
 					else {
-						offset_left += display_proportional_clip(offset_left, top, translator::translate("????"), ALIGN_LEFT, MN_GREY0, true);
+						line_info.printf(translator::translate("%d convois"), halt->registered_lines[i]->count_convoys());
 					}
-					offset_left += display_proportional_clip(offset_left, top, ")", ALIGN_LEFT, SYSCOL_TEXT, true) + D_H_SPACE;
+					offset_left += display_proportional_clip(offset_left, top, line_info, ALIGN_LEFT, halt->registered_lines[i]->has_overcrowded() ? COL_DARK_PURPLE : SYSCOL_TEXT, true);
+					line_info.clear();
+					offset_left += display_proportional_clip(offset_left, top, ", ", ALIGN_LEFT, SYSCOL_TEXT, true);
+
+					// line service frequency. NOTE: Displayed only if pakset has a symbol due to display space
+					if (skinverwaltung_t::service_frequency) {
+						display_color_img(skinverwaltung_t::service_frequency->get_image_id(0), offset_left, top, 0, false, false);
+						offset_left += GOODS_SYMBOL_CELL_WIDTH;
+						if (halt->registered_lines[i]->get_service_frequency())
+						{
+							char as_clock[32];
+							welt->sprintf_ticks(as_clock, sizeof(as_clock), halt->registered_lines[i]->get_service_frequency());
+							line_info.append(as_clock);
+							offset_left += display_proportional_clip(offset_left, top, line_info, ALIGN_LEFT, halt->registered_lines[i]->get_state() == simline_t::line_missing_scheduled_slots ? halt->registered_lines[i]->get_state_color() : SYSCOL_TEXT, true);
+							line_info.clear();
+						}
+						else {
+							offset_left += display_proportional_clip(offset_left, top, translator::translate("????"), ALIGN_LEFT, MN_GREY0, true);
+						}
+						offset_left += display_proportional_clip(offset_left, top, ")", ALIGN_LEFT, SYSCOL_TEXT, true) + D_H_SPACE;
+					}
+					top += LINESPACE;
+					waytype_line_cnt++;
 				}
-				top += LINESPACE;
+				if (!waytype_line_cnt){
+					display_proportional_clip(offset.x + D_MARGIN_LEFT, top, translator::translate("keine"), ALIGN_LEFT, MN_GREY0, true);
+					top += LINESPACE;
+				}
 			}
 		}
 		else {
