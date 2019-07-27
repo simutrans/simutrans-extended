@@ -122,6 +122,15 @@ public:
 	static const skin_desc_t *electricity;
 	/// image to indicate that an attraction is inside a town (attraction list window)
 	static const skin_desc_t *intown;
+	/// image shown in display of industry input/output
+	static const skin_desc_t *input_output;
+	/// image shown in display of waiting time at the station
+	static const skin_desc_t *waiting_time;
+	static const skin_desc_t *service_frequency;
+	/// image shown in display of travel time to the destination
+	static const skin_desc_t *travel_time;
+	/// image to indicate that the movement method is walking
+	static const skin_desc_t *on_foot;
 
 
 	/// @name cursors

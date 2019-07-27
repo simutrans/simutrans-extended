@@ -149,6 +149,10 @@ public:
 	*/
 	uint8 get_number_of_classes() const { return number_of_classes; }
 
+	// @return translated class name  @ Ranran, May 2019
+	const char * get_translated_wealth_name(const uint8 g_class) const;
+	//const char * get_translated_accommodation_name(const uint8 g_class) const;
+
 	/**
 	* Checks if this good can be interchanged with the other, in terms of
 	* transportability.

@@ -280,6 +280,8 @@ public:
 	inline times_history_map& get_journey_times_history() { return journey_times_history; }
 
 	sint64 calc_departures_scheduled();
+
+	sint64 get_service_frequency();
 };
 
 
