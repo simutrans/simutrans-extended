@@ -1838,6 +1838,8 @@ void settings_t::parse_simuconf(tabfile_t& simuconf, sint16& disp_width, sint16&
 	}
 	float32e8_t distance_per_tile(meters_per_tile, 1000);
 
+    set_seconds_per_month(contents.get_int("seconds_per_month",6*60*60));
+
 	base_meters_per_tile = contents.get_int("base_meters_per_tile", base_meters_per_tile);
 	base_bits_per_month = contents.get_int("base_bits_per_month", base_bits_per_month); 
 	job_replenishment_per_hundredths_of_months = contents.get_int("job_replenishment_per_hundredths_of_months", job_replenishment_per_hundredths_of_months);
@@ -2976,26 +2978,31 @@ void settings_t::set_meters_per_tile(uint16 value)
 	seconds_per_tick = meters_per_step / ( (1<<YARDS_PER_VEHICLE_STEP_SHIFT) * simspeed2ms); 
 }
 
+void settings_t::set_seconds_per_month(uint32 value){
+    seconds_per_month=value;
+}
+
 void settings_t::set_scale()
 {
+    sint64 ticks_per_month = bits_per_month_to_ticks(bits_per_month);
 	if(unit_reverse_time_seconds < 65535)
 	{
-		unit_reverse_time = (uint32)seconds_to_ticks(unit_reverse_time_seconds, meters_per_tile);
+		unit_reverse_time = (uint32)seconds_to_ticks(unit_reverse_time_seconds, seconds_per_month, ticks_per_month);
 	}
 
 	if(hauled_reverse_time_seconds < 65535)
 	{
-		hauled_reverse_time = (uint32)seconds_to_ticks(hauled_reverse_time_seconds, meters_per_tile);
+		hauled_reverse_time = (uint32)seconds_to_ticks(hauled_reverse_time_seconds, seconds_per_month, ticks_per_month);
 	}
 
 	if(turntable_reverse_time_seconds < 65535)
 	{
-		turntable_reverse_time = (uint32)seconds_to_ticks(turntable_reverse_time_seconds, meters_per_tile);
+		turntable_reverse_time = (uint32)seconds_to_ticks(turntable_reverse_time_seconds, seconds_per_month, ticks_per_month);
 	}
 
 	if (road_reverse_time_seconds < 65535)
 	{
-		road_reverse_time = (uint32)seconds_to_ticks(road_reverse_time_seconds, meters_per_tile);
+		road_reverse_time = (uint32)seconds_to_ticks(road_reverse_time_seconds, seconds_per_month, ticks_per_month);
 	}
 }
 

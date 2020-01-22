@@ -1,6 +1,6 @@
 /**
  * convoi_t Class for vehicle associations
- * Hansjörg Malthaner
+ * Hansjï¿½rg Malthaner
  */
 
 #include <stdlib.h>
@@ -1487,7 +1487,7 @@ bool convoi_t::prepare_for_routing()
 /**
  * Berechne route von Start- zu Zielkoordinate
  * "Compute route from starting to goal coordinate" (Babelfish)
- * @author Hanjsörg Malthaner
+ * @author Hanjsï¿½rg Malthaner
  */
 bool convoi_t::drive_to()
 {
@@ -1708,7 +1708,7 @@ bool convoi_t::drive_to()
  * Berechnung einer neuen Route
  *
  * "A vehicle recognized and forces a problem the computation of a new route" (Babelfish)
- * @author Hanjsörg Malthaner
+ * @author Hanjsï¿½rg Malthaner
  */
 void convoi_t::suche_neue_route()
 {
@@ -7905,7 +7905,7 @@ void convoi_t::clear_replace()
 					else
 					{
 						// Add loose estimate for loading to the %
-						etd += seconds_to_ticks(900, welt->get_settings().get_meters_per_tile()); // 15 minutes.
+						etd += seconds_to_ticks(900, welt->get_settings().get_seconds_per_month(), welt->ticks_per_world_month); // 15 minutes.
 					}
 				}
 				etd += current_loading_time;
@@ -8180,7 +8180,7 @@ float32e8_t convoi_t::get_brake_summary(/*const float32e8_t &speed*/ /* in m/s *
 		}
 		else
 		{
-			// Usual brake deceleration is about -0.5 .. -1.5 m/s² depending on vehicle and ground.
+			// Usual brake deceleration is about -0.5 .. -1.5 m/sï¿½ depending on vehicle and ground.
 			// With F=ma, a = F/m follows that brake force in N is ~= 1/2 weight in kg
 			force += br * v.get_total_weight();
 		}

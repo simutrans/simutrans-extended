@@ -184,11 +184,20 @@ inline sint32 v_to_speed(const float32e8_t &v)
 	return (sint32)(ms2simspeed * v + float32e8_t::half);
 }
 
-inline sint64 seconds_to_ticks(uint32 seconds, uint16 meters_per_tile)
+//TODO float instead of int multiplication will allow us to pre-calculate the factor. I guess we should go for it.
+inline sint64 seconds_to_ticks(uint32 seconds, uint32 seconds_per_month, sint64 ticks_per_month )
 {
-	return ((sint64)seconds * 22764L) / (sint64)(meters_per_tile);
+	//return ((sint64)seconds * 22764L) / (sint64)(meters_per_tile);
+	return (seconds*ticks_per_month)/seconds_per_month;
 }
 
+inline uint32 ticks_to_seconds(sint64 ticks, uint32 seconds_per_month, sint64 ticks_per_month){
+    return (ticks*seconds_per_month)/ticks_per_month;
+}
+
+inline sint64 bits_per_month_to_ticks(sint16 bits_per_month){
+    return 1LL << bits_per_month;
+}
 
 /**
  * Conversion between simutrans steps and meters

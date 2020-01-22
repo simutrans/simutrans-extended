@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 1997 - 2002 by Volker Meyer & Hansjörg Malthaner
+ *  Copyright (c) 1997 - 2002 by Volker Meyer & Hansjï¿½rg Malthaner
  *
  * This file is part of the Simutrans project under the artistic licence.
  */
@@ -252,7 +252,7 @@ public:
 		way_constraints.set_permissive(0);
 		way_constraints.set_prohibitive(255);
 #ifndef NETTOOL
-		min_loading_time = max_loading_time = (uint32)seconds_to_ticks(30, 250); 
+		min_loading_time = max_loading_time = (uint32)seconds_to_ticks(30, 21600, 250); //TODO not quite sure if it is intended this way.
 #endif
 		tractive_effort = 0;
 		brake_force = BRAKE_FORCE_UNKNOWN;
@@ -757,7 +757,8 @@ public:
 
 	bool get_is_tall() const { return is_tall; }
 
-	void set_scale(uint16 scale_factor, uint32 way_wear_factor_rail, uint32 way_wear_factor_road, uint16 standard_axle_load)
+	//TODO seconds_per_month or ticks_per_month should not be required here
+	void set_scale(uint16 scale_factor, uint32 way_wear_factor_rail, uint32 way_wear_factor_road, uint16 standard_axle_load, uint32 seconds_per_month, sint64 ticks_per_month)
 	{ 
 		obj_desc_transport_related_t::set_scale(scale_factor);
 
@@ -769,11 +770,11 @@ public:
 #ifndef NETTOOL
 		if(max_loading_time_seconds != 65535)
 		{
-			max_loading_time = (uint32)seconds_to_ticks(max_loading_time_seconds, scale_factor);
+			max_loading_time = (uint32)seconds_to_ticks(max_loading_time_seconds, seconds_per_month, ticks_per_month);
 		}
 		if(min_loading_time_seconds != 65535)
 		{
-			min_loading_time = (uint32)seconds_to_ticks(min_loading_time_seconds, scale_factor);
+			min_loading_time = (uint32)seconds_to_ticks(min_loading_time_seconds, seconds_per_month, ticks_per_month);
 		}
 #endif
 		if(way_wear_factor == UINT32_MAX_VALUE) 

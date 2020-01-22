@@ -349,6 +349,7 @@ public:
 public:
 
 	uint16 meters_per_tile;
+    uint32 seconds_per_month;
 	
 	uint32 base_meters_per_tile;
 	uint32 base_bits_per_month;
@@ -843,8 +844,14 @@ public:
 
 	uint16 get_meters_per_tile() const { return meters_per_tile; }
 	void   set_meters_per_tile(uint16 value);
+
+    uint32 get_seconds_per_month() const { return seconds_per_month; }
+    void   set_seconds_per_month(uint32 value);
+
 	uint32 get_steps_per_km() const { return steps_per_km; }
-	
+
+
+
 	uint32 get_base_meters_per_tile() const { return base_meters_per_tile; }
 	uint32 get_base_bits_per_month() const { return base_bits_per_month; }
 	uint32 get_job_replenishment_per_hundredths_of_months() const { return job_replenishment_per_hundredths_of_months; }

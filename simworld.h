@@ -1303,7 +1303,8 @@ public:
 	 */
 	sint64 ticks_per_world_month;
 
-	void set_ticks_per_world_month_shift(sint16 bits) {ticks_per_world_month_shift = bits; ticks_per_world_month = (1LL << ticks_per_world_month_shift); }
+	void set_ticks_per_world_month_shift(sint16 bits) {ticks_per_world_month_shift = bits; ticks_per_world_month = bits_per_month_to_ticks(
+                ticks_per_world_month_shift); }
 
 	/**
 	 * Converts speed (yards per tick) into tiles per month
@@ -1575,7 +1576,13 @@ public:
 		 * This also needs to be changed because it's stupid; it's based on
 		 * old settings which are now in simunits.h
 		 */
-		return get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L);
+		//return get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L);
+
+		/*
+		 * This will scale any month length to 60*60*6=21600s, which is 6:00:00
+		 * //TODO add seconds_per_month config param
+		 */
+		return ::ticks_to_seconds(ticks,settings.get_seconds_per_month(),world->ticks_per_world_month);
 	}
 #ifndef NETTOOL	
 	/** 
@@ -1590,7 +1597,8 @@ public:
 
 		//return ((sint64)seconds * 4096L * 1000L) / (sint64)get_settings().get_meters_per_tile() / 30L / 6L;
 
-		return seconds_to_ticks(seconds, get_settings().get_meters_per_tile()); 
+		//return seconds_to_ticks(seconds, get_settings().get_meters_per_tile());
+		return ::seconds_to_ticks(seconds, world->get_settings().get_seconds_per_month(), world->ticks_per_world_month);
 	}
 #endif
 	/**
