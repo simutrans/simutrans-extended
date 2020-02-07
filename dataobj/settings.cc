@@ -92,7 +92,7 @@ settings_t::settings_t() :
 	no_tree_climates = 0;	// bit set, if this climate is to be void of random trees
 	no_trees = false;	// if set, no trees at all, may be useful for low end engines
 
-	lake = true;	// if set lakes will be added to map
+	lake = false;	// if set lakes will be added to map
 
 	// some settings more
 	allow_player_change = true;
@@ -538,9 +538,12 @@ settings_t::settings_t() :
 	max_comfort_preference_percentage = 500;
 
 	rural_industries_no_staff_shortage = true;
+	auto_connect_industries_and_attractions_by_road = 4;
 
 	path_explorer_time_midpoint = 64;
 	save_path_explorer_data = true;
+
+	show_future_vehicle_info = true;
 }
 
 void settings_t::set_default_climates()
@@ -1786,6 +1789,16 @@ void settings_t::rdwr(loadsave_t *file)
 		{
 			rural_industries_no_staff_shortage = true;
 		}
+
+		if (file->get_extended_version() >= 14 && file->get_extended_revision() >= 16)
+		{
+			file->rdwr_long(auto_connect_industries_and_attractions_by_road); 
+		}
+		else
+		{
+			auto_connect_industries_and_attractions_by_road = 4;
+		}
+
 		if (file->get_extended_version() >= 13 && file->get_extended_revision() >= 4)
 		{
 			file->rdwr_long(power_revenue_factor_percentage);
@@ -1795,6 +1808,11 @@ void settings_t::rdwr(loadsave_t *file)
 		{
 			file->rdwr_long(path_explorer_time_midpoint); 
 			file->rdwr_bool(save_path_explorer_data); 
+		}
+
+		if (file->get_extended_version() >= 15 || (file->get_extended_version() >= 14 && file->get_extended_revision() >= 18))
+		{
+			file->rdwr_bool(show_future_vehicle_info);
 		}
 	}
 
@@ -2645,9 +2663,12 @@ void settings_t::parse_simuconf(tabfile_t& simuconf, sint16& disp_width, sint16&
 	max_comfort_preference_percentage = contents.get_int("max_comfort_preference_percentage", max_comfort_preference_percentage);
 
 	rural_industries_no_staff_shortage = contents.get_int("rural_industries_no_staff_shortage", rural_industries_no_staff_shortage); 
+	auto_connect_industries_and_attractions_by_road = contents.get_int("auto_connect_industries_and_attractions_by_road", auto_connect_industries_and_attractions_by_road); 
 
 	path_explorer_time_midpoint = contents.get_int("path_explorer_time_midpoint", path_explorer_time_midpoint); 
 	save_path_explorer_data = contents.get_int("save_path_explorer_data", save_path_explorer_data); 
+
+	show_future_vehicle_info = contents.get_int("show_future_vehicle_information", show_future_vehicle_info);
 
 	// OK, this is a bit complex.  We are at risk of loading the same livery schemes repeatedly, which
 	// gives duplicate livery schemes and utter confusion.

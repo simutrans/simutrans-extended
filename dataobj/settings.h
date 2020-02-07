@@ -696,9 +696,14 @@ public:
 	uint16 max_comfort_preference_percentage;
 
 	bool rural_industries_no_staff_shortage;
+	uint32 auto_connect_industries_and_attractions_by_road;
 
 	uint32 path_explorer_time_midpoint;
 	bool save_path_explorer_data;
+
+	// Whether players can know in advance the vehicle production end date and upgrade availability date
+	// If false, only information up to one year ahead
+	bool show_future_vehicle_info;
 
 	/**
 	 * If map is read from a heightfield, this is the name of the heightfield.
@@ -1191,9 +1196,13 @@ public:
 	uint16 get_max_comfort_preference_percentage() const { return max_comfort_preference_percentage; }
 
 	bool get_rural_industries_no_staff_shortage() const { return rural_industries_no_staff_shortage; }
+	uint32 get_auto_connect_industries_and_attractions_by_road() const { return auto_connect_industries_and_attractions_by_road; }
 
 	uint32 get_path_explorer_time_midpoint() const { return path_explorer_time_midpoint; }
 	bool get_save_path_explorer_data() const { return save_path_explorer_data; }
+
+	bool get_show_future_vehicle_info() const { return show_future_vehicle_info; }
+	//void set_show_future_vehicle_info(bool yesno) { show_future_vehicle_info = yesno; }
 };
 
 #endif 
