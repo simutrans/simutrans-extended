@@ -355,7 +355,7 @@ public:
 
 	uint8 max_rerouting_interval_months;
 
-public:
+public: //todo public attributes
 
 	uint16 meters_per_tile;
 	
@@ -364,7 +364,7 @@ public:
 	uint32 job_replenishment_per_hundredths_of_months;
 
 	// We need it often(every vehicle_base_t::do_drive call), so we cache it.
-	uint32 steps_per_km;
+	uint32 steps_per_km; //todo settings are not a cache!
 
 private:
 	// The public version of these is exposed via tables below --neroden
@@ -416,7 +416,7 @@ private:
 	// This is used to store the adjusted value for the number of ticks that must elapse before a single job is replenished.
 	sint64 job_replenishment_ticks;
 
-public:
+public: //todo public attributes
 	// @author: neroden
 	// Linear interpolation tables for various things
 	// First argument is "in" type, second is "out" type
@@ -477,6 +477,7 @@ public:
 	bool allow_bankruptcy;
 	bool allow_purchases_when_insolvent;
 
+	//TODO check whether these are tick or second based
 	// Reversing settings
 	//@author: jamespetts
 	uint32 unit_reverse_time;
@@ -507,14 +508,14 @@ public:
 	 * etc.
 	 * @author: jamespetts, August 2011
 	 */
-	uint16 min_wait_airport;
+	uint16 min_wait_airport; //todo check for used time unit
 	
 private:
 
 	// true, if this pak should be used with extensions (default)
 	bool with_private_paks;
 	
-public:
+public: //todo public attributes
 
 	// The ranges for the journey time tolerance for passengers.
 	// @author: jamespetts
@@ -551,10 +552,10 @@ private:
 	// Whether non-public players are allowed to make stops and ways public.
 	bool allow_making_public;
 #ifndef NETTOOL
-	float32e8_t simtime_factor;
-	float32e8_t meters_per_step;
-	float32e8_t steps_per_meter;
-	float32e8_t seconds_per_tick;
+	//float32e8_t simtime_factor;   //unused
+	float32e8_t meters_per_step;    //todo the settings are not a cache!
+	float32e8_t steps_per_meter;    //todo see above
+	float32e8_t seconds_per_tick;   //todo see above
 #endif
 
 	// true if transformers are allowed to built underground
@@ -563,7 +564,7 @@ private:
 	// true if companies can make ways public
 	bool disable_make_way_public;
 
-public:
+public: //todo public attributes
 	/* the big cost section */
 	sint32 maint_building;	// normal building
 
@@ -676,7 +677,7 @@ public:
 	uint16 parallel_ways_forge_cost_percentage_narrowgauge;
 	uint16 parallel_ways_forge_cost_percentage_air;
 
-	uint32 max_diversion_tiles;
+	uint32 max_diversion_tiles; //todo ???
 
 	uint32 way_degradation_fraction;
 
@@ -686,12 +687,12 @@ public:
 	uint32 citycar_way_wear_factor;
 	
 	uint32 sighting_distance_meters;
-	uint16 sighting_distance_tiles;
+	uint16 sighting_distance_tiles;  //todo the settings are not a cache
 
 	uint32 assumed_curve_radius_45_degrees;
 
 	sint32 max_speed_drive_by_sight_kmh;
-	sint32 max_speed_drive_by_sight;
+	sint32 max_speed_drive_by_sight;    //todo the settings are not a cache
 
 	uint32 time_interval_seconds_to_clear;
 	uint32 time_interval_seconds_to_caution;
@@ -706,7 +707,7 @@ public:
 	bool rural_industries_no_staff_shortage;
 	uint32 auto_connect_industries_and_attractions_by_road;
 
-	uint32 path_explorer_time_midpoint;
+	uint32 path_explorer_time_midpoint; //todo ???
 	bool save_path_explorer_data;
 
 	// Whether players can know in advance the vehicle production end date and upgrade availability date
@@ -857,7 +858,7 @@ public:
 
 	uint16 get_meters_per_tile() const { return meters_per_tile; }
 	void   set_meters_per_tile(uint16 value);
-	uint32 get_steps_per_km() const { return steps_per_km; }
+	uint32 get_steps_per_km() const { return steps_per_km; }    //todo not a unit converter
 	
 	uint32 get_base_meters_per_tile() const { return base_meters_per_tile; }
 	uint32 get_base_bits_per_month() const { return base_bits_per_month; }
@@ -1110,10 +1111,14 @@ public:
 	uint32 get_random_mode_visiting() const { return random_mode_visiting; }
 
 #ifndef NETTOOL
-	float32e8_t get_simtime_factor() const { return simtime_factor; }
+    //TODO Move to simunits
+	//float32e8_t get_simtime_factor() const { return simtime_factor; } //unused
 	float32e8_t meters_to_steps(const float32e8_t &meters) const { return steps_per_meter * meters; }
 	float32e8_t steps_to_meters(const float32e8_t &steps) const { return meters_per_step * steps; }
-	float32e8_t ticks_to_seconds(sint32 delta_t) const { return seconds_per_tick * delta_t; }
+	float32e8_t ticks_to_seconds(sint32 delta_t) const {
+	    assert(seconds_per_tick * delta_t==::ticks_to_seconds(delta_t, meters_per_tile));
+	    return ::ticks_to_seconds(delta_t, meters_per_tile);
+	}
 #endif
 	uint8 get_max_elevated_way_building_level() const { return max_elevated_way_building_level; }
 	void set_max_elevated_way_building_level(uint8 value) { max_elevated_way_building_level = value; }

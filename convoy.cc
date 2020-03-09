@@ -198,7 +198,7 @@ sint32 convoy_t::calc_max_speed(const weight_summary_t &weight)
 	
 	// this iterative version is a bit more precise as it uses the correct speed.
 	/*
-	float32e8_t v = vehicle_summary.max_speed * kmh2ms;
+	float32e8_t v = vehicle_summary.max_speed * legacy_kmh2ms;
 	float32e8_t F = get_force(v);
 	float32e8_t Ff = adverse.cf * v * v;
 	if (Frs + Ff > F)
@@ -228,7 +228,7 @@ sint32 convoy_t::calc_max_speed(const weight_summary_t &weight)
 			break;
 		}
 	}
-	return (v * ms2kmh + float32e8_t::half).to_sint32();
+	return (v * legacy_ms2kmh + float32e8_t::half).to_sint32();
 	*/
 	
 	// this version approximates the result. It ignores that get_continuous_power() depends on vehicle.max_speed,
@@ -237,14 +237,14 @@ sint32 convoy_t::calc_max_speed(const weight_summary_t &weight)
 	const float32e8_t q2 = get_continuous_power() / (float32e8_t::two * adverse.cf);
 	const float32e8_t sd = signed_power(q2 * q2 + p3 * p3 * p3, float32e8_t::half);
 	const float32e8_t vmax = signed_power(q2 + sd, float32e8_t::third) + signed_power(q2 - sd, float32e8_t::third); 
-	return min(vehicle_summary.max_speed, (sint32)(vmax * ms2kmh + float32e8_t::one)); // 1.0 to compensate inaccuracy of calculation and make sure this is at least what calc_move() evaluates.
+	return min(vehicle_summary.max_speed, (sint32)(vmax * legacy_ms2kmh + float32e8_t::one)); // 1.0 to compensate inaccuracy of calculation and make sure this is at least what calc_move() evaluates.
 }
 
 sint32 convoy_t::calc_max_weight(sint32 sin_alpha)
 {
 	if (vehicle_summary.max_speed == 0)
 		return 0;
-	const float32e8_t v = vehicle_summary.max_speed * kmh2ms; // from km/h to m/s
+	const float32e8_t v = vehicle_summary.max_speed * legacy_kmh2ms; // from km/h to m/s
 	const float32e8_t f = get_continuous_power() / v - adverse.cf * v * v;
 	if (f <= 0)
 	{
@@ -268,9 +268,9 @@ static const float32e8_t fl_max_seconds_til_vsoll(1800);
 
 float32e8_t convoy_t::calc_min_braking_distance(const weight_summary_t &weight, const float32e8_t &v)
 {
-	// breaking distance: x = 1/2 at². 
-	// with a = v/t, v = at, and v² = a²t² --> x = 1/2 v²/a.
-	// with F = ma, a = F/m --> x = 1/2 v²m/F.
+	// breaking distance: x = 1/2 atï¿½. 
+	// with a = v/t, v = at, and vï¿½ = aï¿½tï¿½ --> x = 1/2 vï¿½/a.
+	// with F = ma, a = F/m --> x = 1/2 vï¿½m/F.
 	// This equation is a rough estimation:
 	// - it does not take into account, that Ff depends on v (getting a differential equation).
 	// - Frs depends on the inclination of the way. The above Frs is asnapshot of the current position only.
@@ -285,7 +285,7 @@ float32e8_t convoy_t::calc_min_braking_distance(const weight_summary_t &weight, 
 
 sint32 convoy_t::calc_min_braking_distance(const settings_t &settings, const weight_summary_t &weight, sint32 speed)
 {
-	const float32e8_t x = calc_min_braking_distance(weight, speed_to_v(speed)) * _110_percent;
+	const float32e8_t x = calc_min_braking_distance(weight, legacy_speed_to_v(speed)) * _110_percent;
 	return settings.meters_to_steps(x);
 }
 
@@ -302,19 +302,19 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 		// After fl_max_seconds_til_vsoll any vehicle has reached its akt_speed_soll. 
 		// Shorten the process. 
 		akt_speed = min(max(akt_speed_soll, akt_speed), kmh_to_speed(calc_max_speed(weight)));
-		akt_v = speed_to_v(akt_speed);
-		sp_soll += (sint32)(settings.meters_to_steps(delta_s * akt_v) * steps2yards); // sp_soll in simutrans yards, dx in m
+		akt_v = legacy_speed_to_v(akt_speed);
+		sp_soll += (sint32)(settings.meters_to_steps(delta_s * akt_v) * legacy_steps2yards); // sp_soll in simutrans yards, dx in m
 	}
 	else
 	{
 		const float32e8_t fweight = weight.weight; // convoy's weight in kg
 		const float32e8_t Frs = g_accel * (get_adverse_summary().fr * weight.weight_cos + weight.weight_sin); // Frs in N, weight.weight_cos and weight.weight_sin are calculated per vehicle due to vehicle specific slope angle.
-		const float32e8_t vlim = speed_to_v(next_speed_limit); // vlim in m/s, next_speed_limit in simutrans vehicle speed.
+		const float32e8_t vlim = legacy_speed_to_v(next_speed_limit); // vlim in m/s, next_speed_limit in simutrans vehicle speed.
 		const float32e8_t xlim = settings.steps_to_meters(steps_til_limit); // xbrk in m, steps_til_limit in simutrans steps
 		const float32e8_t xbrk = settings.steps_to_meters(steps_til_brake); // xbrk in m, steps_til_brake in simutrans steps
-		//float32e8_t vsoll = min(speed_to_v(akt_speed_soll), kmh2ms * min(adverse.max_speed, get_vehicle_summary().max_speed)); // vsoll in m/s, akt_speed_soll in simutrans vehicle speed. "Soll" translates to "Should", so this is the speed limit.
-		const float32e8_t check_vsoll_1 = speed_to_v(akt_speed_soll);
-		const float32e8_t check_vsoll_2 = kmh2ms * min(adverse.max_speed, get_vehicle_summary().max_speed);
+		//float32e8_t vsoll = min(legacy_speed_to_v(akt_speed_soll), legacy_kmh2ms * min(adverse.max_speed, get_vehicle_summary().max_speed)); // vsoll in m/s, akt_speed_soll in simutrans vehicle speed. "Soll" translates to "Should", so this is the speed limit.
+		const float32e8_t check_vsoll_1 = legacy_speed_to_v(akt_speed_soll);
+		const float32e8_t check_vsoll_2 = legacy_kmh2ms * min(adverse.max_speed, get_vehicle_summary().max_speed);
 		float32e8_t vsoll = check_vsoll_1 < check_vsoll_2 ? check_vsoll_1 : check_vsoll_2; 
 		float32e8_t fvsoll = float32e8_t::zero; // force in N needed to hold vsoll. calculated when needed.
 		float32e8_t speed_ratio = float32e8_t::zero; // requested speed / convoy's max speed. calculated when needed.
@@ -354,7 +354,7 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 				{
 					if (speed_ratio == float32e8_t::zero) // speed_ratio is a constant within this function. So calculate it once only.
 					{
-						speed_ratio = ms2kmh * vsoll / vehicle_summary.max_speed;
+						speed_ratio = legacy_ms2kmh * vsoll / vehicle_summary.max_speed;
 					}
 					if (speed_ratio < float32e8_t::tenth)
 					{
@@ -408,10 +408,10 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 					a = v / dt_s;
 				}
 				x = dx + _calc_move(a, dt_s, v0);
-				if (x > xlim && v < V_MIN)
+				if (x > xlim && v < LEGACY_V_MIN)
 				{
 					// don't stop before arrival.
-					v = V_MIN;
+					v = LEGACY_V_MIN;
 					a = v / dt_s;
 					x = dx + _calc_move(a, dt_s, v0);
 				}
@@ -423,9 +423,9 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 					// don't accelerate too much
 					v = vsoll;
 				}
-				else if (v < V_MIN)
+				else if (v < LEGACY_V_MIN)
 				{
-					v = V_MIN;
+					v = LEGACY_V_MIN;
 				}
 				x = dx + _calc_move(a, dt_s, v0);
 				if (x > xbrk)
@@ -443,8 +443,8 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 			delta_s -= dt_s; // another time slice passed
 		}
 		akt_v = v;
-		akt_speed = v_to_speed(v); // akt_speed in simutrans vehicle speed, v in m/s
-		sp_soll += (sint32)(settings.meters_to_steps(dx) * steps2yards); // sp_soll in simutrans yards, dx in m
+		akt_speed = legacy_v_to_speed(v); // akt_speed in simutrans vehicle speed, v in m/s
+		sp_soll += (sint32)(settings.meters_to_steps(dx) * legacy_steps2yards); // sp_soll in simutrans yards, dx in m
 	}
 }
 
@@ -508,7 +508,7 @@ float32e8_t potential_convoy_t::get_brake_summary(/*const float32e8_t &speed*/ /
 		}
 		else
 		{
-			// Usual brake deceleration is about -0.5 .. -1.5 m/s² depending on vehicle and ground. 
+			// Usual brake deceleration is about -0.5 .. -1.5 m/sï¿½ depending on vehicle and ground. 
 			// With F=ma, a = F/m follows that brake force in N is ~= 1/2 weight in kg
 			force += get_adverse_summary().br * b.get_weight();
 		}
@@ -630,7 +630,7 @@ float32e8_t existing_convoy_t::get_brake_summary(/*const float32e8_t &speed*/ /*
 		}
 		else
 		{
-			// Usual brake deceleration is about -0.5 .. -1.5 m/s² depending on vehicle and ground. 
+			// Usual brake deceleration is about -0.5 .. -1.5 m/sï¿½ depending on vehicle and ground. 
 			// With F=ma, a = F/m follows that brake force in N is ~= 1/2 weight in kg
 			force += get_adverse_summary().br * v.get_total_weight();
 		}

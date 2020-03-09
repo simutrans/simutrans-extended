@@ -177,7 +177,7 @@ void vehicle_desc_t::loaded()
 	 */
 	if (g_power != 0 || g_force != 0)
 	{
-		uint32 speed = (uint32)topspeed * kmh2ms + float32e8_t::half;
+		uint32 speed = (uint32)topspeed * legacy_kmh2ms + float32e8_t::half;
 		max_speed = speed;
 		geared_power = new uint32[speed+1];
 		geared_force = new uint32[speed+1];

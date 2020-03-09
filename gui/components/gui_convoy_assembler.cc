@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997 - 2001 Hansjörg Malthaner
+ * Copyright (c) 1997 - 2001 Hansjï¿½rg Malthaner
  *
  * This file is part of the Simutrans project under the artistic licence.
  * (see licence.txt)
@@ -920,8 +920,8 @@ void gui_convoy_assembler_t::draw(scr_coord parent_pos)
 			min_speed == max_speed ? " %d km/h @ %g t" : " %d km/h @ %g t %s %d km/h @ %g t", 
 			min_speed, max_weight * 0.001f,	translator::translate("..."), max_speed, min_weight * 0.001f);
 
-		const sint32 brake_distance_min = convoy.calc_min_braking_distance(weight_summary_t(min_weight, friction), kmh2ms * max_speed);
-		const sint32 brake_distance_max = convoy.calc_min_braking_distance(weight_summary_t(max_weight, friction), kmh2ms * max_speed);
+		const sint32 brake_distance_min = convoy.calc_min_braking_distance(weight_summary_t(min_weight, friction), legacy_kmh2ms * max_speed);
+		const sint32 brake_distance_max = convoy.calc_min_braking_distance(weight_summary_t(max_weight, friction), legacy_kmh2ms * max_speed);
 		txt_convoi_speed.printf(
 			brake_distance_min == brake_distance_max ? translator::translate("; brakes from max. speed in %i m") : translator::translate("; brakes from max. speed in %i - %i m"), 
 			brake_distance_min, brake_distance_max);

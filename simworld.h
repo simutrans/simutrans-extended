@@ -458,7 +458,7 @@ private:
 	 * @param player player who wants to lower
 	 * @param x coordinate
 	 * @param y coordinate
-	 * @param keep_water returns false if water tiles would be raised above water
+	 * @param keep_water returns false if water tiles would be raised above watertime
 	 * @param hsw desired height of sw-corner
 	 * @param hse desired height of se-corner
 	 * @param hse desired height of ne-corner
@@ -613,7 +613,7 @@ private:
 	/**
 	 * Default time stretching factor.
 	 */
-	uint32 time_multiplier;
+	uint32 time_multiplier; //TODO check this one out
 
 	uint8 step_mode;
 
@@ -670,7 +670,7 @@ private:
 	 * ms, when the last step was done.
 	 * To calculate the fps and the simloops.
 	 */
-	uint32 last_step_time;
+	uint32 last_step_time; //todo seems to be unused
 
 	/**
 	 * ms, when the next step is to be done.
@@ -1288,7 +1288,7 @@ public:
 	uint16 get_timeline_year_month() const { return settings.get_use_timeline() ? current_month : 0; }
 
 	/**
-	 * Number of ticks per day in bits.
+	 * Number of ticks per month in bits.
 	 * @see ticks_per_world_month
 	 * @author Hj. Malthaner
 	 */
@@ -1300,7 +1300,10 @@ public:
 	 */
 	sint64 ticks_per_world_month;
 
-	void set_ticks_per_world_month_shift(sint16 bits) {ticks_per_world_month_shift = bits; ticks_per_world_month = (1LL << ticks_per_world_month_shift); }
+	void set_ticks_per_world_month_shift(sint16 bits) {
+	    ticks_per_world_month_shift = bits;
+	    ticks_per_world_month = (1LL << ticks_per_world_month_shift);
+	}
 
 	/**
 	 * Converts speed (yards per tick) into tiles per month
@@ -1313,7 +1316,7 @@ public:
 	 *
 	 * @author neroden
 	 */
-	uint32 speed_to_tiles_per_month(uint32 speed) const
+	uint32 speed_to_tiles_per_month(uint32 speed) const //todo the world is not a unit converter
 	{
 		const int left_shift = (int)(ticks_per_world_month_shift - YARDS_PER_TILE_SHIFT);
 		if (left_shift >= 0) {
@@ -1329,9 +1332,9 @@ public:
 	 * Scales value proportionally with month length.
 	 * Used to scale monthly maintenance costs and factory production.
 	 * @returns value << ( ticks_per_world_month_shift -18 )
-	 * DEPRECATED - use calc_adjusted_montly_figure() instead
+	 * @deprecated - use calc_adjusted_montly_figure() instead
 	 */
-	sint64 scale_with_month_length(sint64 value)
+	sint64 scale_with_month_length(sint64 value) //todo unused
 	{
 		const int left_shift = ticks_per_world_month_shift - (sint64)get_settings().get_base_bits_per_month();
 		if (left_shift >= 0) {
@@ -1346,7 +1349,7 @@ public:
 	 * Used to scale monthly maintenance costs and factory production.
 	 * @returns value << ( 18 - ticks_per_world_month_shift )
 	 */
-	sint64 inverse_scale_with_month_length(sint64 value)
+	sint64 inverse_scale_with_month_length(sint64 value) //todo guess this should be deprecated either.
 	{
 		const int left_shift = (sint64)get_settings().get_base_bits_per_month() - ticks_per_world_month_shift;
 		if (left_shift >= 0) {
@@ -1356,8 +1359,8 @@ public:
 		}
 	}
 
-	sint32 get_time_multiplier() const { return time_multiplier; }
-	void change_time_multiplier( sint32 delta );
+	sint32 get_time_multiplier() const { return time_multiplier; } //todo might be affected by time conversions. Might or might not belong here
+	void change_time_multiplier( sint32 delta );//todo alo check this one
 
 	/** 
 	 * calc_adjusted_monthly_figure()
@@ -1417,7 +1420,8 @@ public:
 	// Consider what to do about things already calibrated to a different level. (Answer: they could probably
 	// do with recalibration anyway).
 
-	sint32 calc_adjusted_monthly_figure(sint32 nominal_monthly_figure) const
+	//todo four times the same function with different datatypes and in one case slightly different implementation. Sounds like templates might be a good option here
+	sint32 calc_adjusted_monthly_figure(sint32 nominal_monthly_figure) const //todo this one might be the way to scale everything based on time scale!
 	{
 		// Adjust for meters per tile
 		const sint32 base_meters_per_tile = (sint32)get_settings().get_base_meters_per_tile(); 
@@ -1450,8 +1454,8 @@ public:
 			if (nominal_monthly_figure < adjustment_factor)
 			{
 				// This situation can lead to loss of precision. 
-				const sint64 adjusted_monthly_figure = (nominal_monthly_figure * 100ll) / adjustment_factor;
-				return (adjusted_monthly_figure << -(base_bits_per_month - ticks_per_world_month_shift)) / 100ll;
+				const sint64 adjusted_monthly_figure = (nominal_monthly_figure * 128ll) / adjustment_factor;
+				return (adjusted_monthly_figure << -(base_bits_per_month - ticks_per_world_month_shift)) / 128ll;
 			}
 			else
 			{
@@ -1464,8 +1468,8 @@ public:
 			if (nominal_monthly_figure < adjustment_factor)
 			{
 				// This situation can lead to loss of precision. 
-				const sint64 adjusted_monthly_figure = (nominal_monthly_figure * 100ll) / adjustment_factor;
-				return (adjusted_monthly_figure >> (base_bits_per_month - ticks_per_world_month_shift)) / 100ll;
+				const sint64 adjusted_monthly_figure = (nominal_monthly_figure * 128ll) / adjustment_factor;
+				return (adjusted_monthly_figure >> (base_bits_per_month - ticks_per_world_month_shift)) / 128ll;
 			}
 			else
 			{
@@ -1515,6 +1519,7 @@ public:
 		}
 	}
 
+	//todo same here. four datatypes, four implementations of which some ore different whilst not introducing any optimisations that could not be applies to the others.
 	uint64 scale_for_distance_only(uint64 value) const
 	{
 		const uint64 base_meters_per_tile = (uint64)get_settings().get_base_meters_per_tile();
@@ -1551,7 +1556,7 @@ public:
 	 * Standard timing conversion
 	 * @author: jamespetts
 	 */
-	inline sint64 ticks_to_tenths_of_minutes(sint64 ticks) const
+	inline sint64 ticks_to_tenths_of_minutes(sint64 ticks) const //TODO the world is not a unit converter
 	{
 		return ticks_to_seconds(ticks) / 6L;
 	}
@@ -1560,8 +1565,11 @@ public:
 	 * Finer timing conversion for UI only
 	 * @author: jamespetts
 	 */
-	inline sint64 ticks_to_seconds(sint64 ticks) const
+	inline sint64 ticks_to_seconds(sint64 ticks) const //TODO the world is not a unit converter
 	{
+	    assert(ticks>=0);
+	    assert(get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L)==::ticks_to_seconds(ticks, get_settings().get_meters_per_tile()));
+	    ::ticks_to_seconds(ticks, get_settings().get_meters_per_tile());
 		/*
 		 * Currently this is altered according to meters_per_tile / 1000.
 		 * This is a "convention" to speed up time when changing distance;
@@ -1572,22 +1580,22 @@ public:
 		 * This also needs to be changed because it's stupid; it's based on
 		 * old settings which are now in simunits.h
 		 */
-		return get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L);
+		//return get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L);
 	}
 #ifndef NETTOOL	
 	/** 
 	* Reverse conversion of the above.
 	*/
-	inline sint64 get_seconds_to_ticks(uint32 seconds) const
+	inline sint64 get_seconds_to_ticks(uint32 seconds) const //TODO the world is not a unit converter
 	{
+	    assert(seconds>=0);
 		// S = a * T * c * d / (e * f)
 		// S / a = T * c * d / (e * f)
 		// S / a / c / d = T / (e * f)
 		// (S / a / c / d) * (e * f) = T
+		assert((((sint64)seconds * 4096L * 1000L) / (sint64)get_settings().get_meters_per_tile() / 30L / 6L) == ::seconds_to_ticks(seconds, get_settings().get_meters_per_tile()));
 
-		//return ((sint64)seconds * 4096L * 1000L) / (sint64)get_settings().get_meters_per_tile() / 30L / 6L;
-
-		return seconds_to_ticks(seconds, get_settings().get_meters_per_tile()); 
+		return ::seconds_to_ticks(seconds, get_settings().get_meters_per_tile());
 	}
 #endif
 	/**
@@ -1634,17 +1642,17 @@ private:
 	 * at 1 km/h in tenths of minutes
 	 * Divide that by speed to get the haulage time at a given speed in tenths of minutes
 	 */
-	mutable uint32 unit_movement_numerator;
+	mutable uint32 unit_movement_numerator; //todo part of cached distance/speed=time calculation
 	/**
 	 * Multiply this by distance, then divide by movement_denominator, to get walking passenger/mail time
 	 * in tenths of minutes
 	 */
-	mutable uint32 walking_numerator;
+	mutable uint32 walking_numerator; //todo part of cached distance/speed=time calculation
 	/**
 	 * This is just to make the integer math work with enough precision.
 	 * It will be slightly faster to make it a power of two shift.
 	 */
-	mutable uint32 movement_denominator_shift;
+	mutable uint32 movement_denominator_shift; //todo part of cached distance/speed=time calculation
 
 	/*
 	 * Cache constant factors involved in walking time
@@ -1652,7 +1660,7 @@ private:
 	 * They are conceptually constant
 	 * @author neroden
 	 */
-	void set_speed_factors() const 
+	void set_speed_factors() const //todo internal speed calculations don't belong here!
 	{
 		// effectively sets movement_denominator to 2^8 = 128
 		movement_denominator_shift = 8;
@@ -1706,7 +1714,7 @@ public:
 	 * Conversion from walking distance in tiles to walking time
 	 * Returns tenths of minutes
 	 */
-	inline uint32 walking_time_tenths_from_distance(uint32 distance) const {
+	inline uint32 walking_time_tenths_from_distance(uint32 distance) const {//todo calculation itself does not belong here
 		if (!speed_factors_are_set) {
 			set_speed_factors();
 		}
@@ -1717,7 +1725,7 @@ public:
 	 * Conversion from walking distance in tiles to walking time
 	 * Returns seconds; used for display purposes
 	 */
-	uint32 walking_time_secs_from_distance(uint32 distance) const {
+	uint32 walking_time_secs_from_distance(uint32 distance) const {//todo does not belong here
 		return walking_time_tenths_from_distance(distance) * 6u;
 	}
 
@@ -1725,7 +1733,7 @@ public:
 	 * Conversion from distance to time, at speed given in km/h
 	 * Returns tenths of minutes
 	 */
-	uint32 travel_time_tenths_from_distance(uint32 distance, uint32 speed) const {
+	uint32 travel_time_tenths_from_distance(uint32 distance, uint32 speed) const {//does not belong here
 		if (!speed_factors_are_set) {
 			set_speed_factors();
 		}
@@ -1737,7 +1745,7 @@ public:
 	 * Walking haulage for freight is always at 1 km/h.
 	 * Returns tenths of minutes
 	 */
-	uint32 walk_haulage_time_tenths_from_distance(uint32 distance) const {
+	uint32 walk_haulage_time_tenths_from_distance(uint32 distance) const {//todo does not belong here
 		if (!speed_factors_are_set) {
 			set_speed_factors();
 		}
@@ -1775,7 +1783,7 @@ public:
 	 *
 	 * @author: Bernd Gabriel, 14.06.2009
 	 */
-	int get_yearsteps() { return (int) ((current_month % 12) * 8 + ((ticks >> (ticks_per_world_month_shift-3)) & 7)); }
+	int get_yearsteps() { return (int) ((current_month % 12) * 8 + ((ticks >> (ticks_per_world_month_shift-3)) & 7)); } //todo world is not a unit converter
 
 	/**
 	 * prissi: current city road.
@@ -2662,7 +2670,7 @@ public:
 	 * Time printing routines.
 	 * Should be inlined.
 	 */
-	inline void sprintf_time_secs(char *p, size_t size, uint32 seconds) const
+	inline void sprintf_time_secs(char *p, size_t size, uint32 seconds) const //todo the world is not a time printer
 	{
 		unsigned int minutes = seconds / 60;
 		unsigned int hours = minutes / 60;
@@ -2686,13 +2694,13 @@ public:
 		}
 	}
 
-	inline void sprintf_ticks(char *p, size_t size, sint64 ticks) const
+	inline void sprintf_ticks(char *p, size_t size, sint64 ticks) const //todo world is not a unit printer
 	{
 		uint32 seconds = (uint32)ticks_to_seconds(ticks);
 		sprintf_time_secs(p, size, seconds);
 	}
 
-	inline void sprintf_time_tenths(char* p, size_t size, uint32 tenths) const
+	inline void sprintf_time_tenths(char* p, size_t size, uint32 tenths) const //todo world is not a unit printer
 	{
 		sprintf_time_secs(p, size, 6 * tenths);
 	}
@@ -2712,8 +2720,8 @@ public:
 
 private:
 
-	void calc_generic_road_time_per_tile_city() { generic_road_time_per_tile_city = calc_generic_road_time_per_tile(city_road); }
-	void calc_generic_road_time_per_tile_intercity();
+	void calc_generic_road_time_per_tile_city() { generic_road_time_per_tile_city = calc_generic_road_time_per_tile(city_road); }//todo check if that is time scale dependent
+	void calc_generic_road_time_per_tile_intercity();//todo see above
 	void calc_max_road_check_depth();
 
 	void process_network_commands(sint32* ms_difference);

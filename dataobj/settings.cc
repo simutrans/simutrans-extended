@@ -2997,35 +2997,35 @@ void settings_t::set_meters_per_tile(uint16 value)
 { 
 	meters_per_tile = value; 
 	steps_per_km = (1000 * VEHICLE_STEPS_PER_TILE) / meters_per_tile; 
-	simtime_factor = float32e8_t(meters_per_tile, 1000);
+	//simtime_factor = float32e8_t(meters_per_tile, 1000);
 	steps_per_meter = float32e8_t(VEHICLE_STEPS_PER_TILE, meters_per_tile);
 	meters_per_step = float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE);
 
-	// As simspeed2ms = meters_per_yard / seconds_per_tick
-	// seconds_per_tick = meters_per_step / yards_per_step / simspeed2ms
-	seconds_per_tick = meters_per_step / ( (1<<YARDS_PER_VEHICLE_STEP_SHIFT) * simspeed2ms); 
+	// As legacy_simspeed2ms = meters_per_yard / seconds_per_tick
+	// seconds_per_tick = meters_per_step / yards_per_step / legacy_simspeed2ms
+	seconds_per_tick = meters_per_step / ((1<<YARDS_PER_VEHICLE_STEP_SHIFT) * legacy_simspeed2ms);
 }
 
 void settings_t::set_scale()
 {
 	if(unit_reverse_time_seconds < 65535)
 	{
-		unit_reverse_time = (uint32)seconds_to_ticks(unit_reverse_time_seconds, meters_per_tile);
+		unit_reverse_time = (uint32) legacy_seconds_to_ticks(unit_reverse_time_seconds, meters_per_tile);
 	}
 
 	if(hauled_reverse_time_seconds < 65535)
 	{
-		hauled_reverse_time = (uint32)seconds_to_ticks(hauled_reverse_time_seconds, meters_per_tile);
+		hauled_reverse_time = (uint32) legacy_seconds_to_ticks(hauled_reverse_time_seconds, meters_per_tile);
 	}
 
 	if(turntable_reverse_time_seconds < 65535)
 	{
-		turntable_reverse_time = (uint32)seconds_to_ticks(turntable_reverse_time_seconds, meters_per_tile);
+		turntable_reverse_time = (uint32) legacy_seconds_to_ticks(turntable_reverse_time_seconds, meters_per_tile);
 	}
 
 	if (road_reverse_time_seconds < 65535)
 	{
-		road_reverse_time = (uint32)seconds_to_ticks(road_reverse_time_seconds, meters_per_tile);
+		road_reverse_time = (uint32) legacy_seconds_to_ticks(road_reverse_time_seconds, meters_per_tile);
 	}
 }
 

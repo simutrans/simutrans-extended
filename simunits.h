@@ -67,6 +67,8 @@
  */
 
 #ifndef NETTOOL
+
+#include <cassert>
 #include "utils/float32e8_t.h"
 #endif
 
@@ -158,33 +160,64 @@
 #define MAXUINT32 4294967295
 #endif
 
+// scale to convert between simutrans speed and m/s
+extern const float32e8_t legacy_simspeed2ms;
+extern const float32e8_t legacy_ms2simspeed;
+
+// scale to convert between km/h and m/s
+extern const float32e8_t legacy_kmh2ms;
+extern const float32e8_t legacy_ms2kmh;
+
+
+extern float32e8_t meters_per_step;
+extern float32e8_t steps_per_meter;
+
+
+void simunits_init_distance_scale(uint16 meters_per_tile);
+void simunits_init_time_scale();
+
+//time
+inline sint64 ticks_to_seconds(sint64 ticks, uint16 meters_per_tile){
+    assert(ticks < 1L<<32);
+    return meters_per_tile * ticks * 30L * 6L / (4096L * 1000L);
+}
+inline float32e8_t ticks_to_seconds(sint32 ticks, uint16 meters_per_tile){return (float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE) / ((1<<YARDS_PER_VEHICLE_STEP_SHIFT) * legacy_simspeed2ms)) * ticks;}
+
+inline sint64 seconds_to_ticks(uint32 seconds, uint16 meters_per_tile) {
+    assert(seconds>=0);
+    return (((sint64) seconds * 204800) / ((sint64) meters_per_tile * 9));
+}
+inline sint64 seconds_to_ticks(const float32e8_t& seconds, uint16 meters_per_tile);
+
+//distance
+float32e8_t steps_to_meters(const float32e8_t &steps){ return meters_per_step * steps; }
+float32e8_t meters_to_steps(const float32e8_t &meters){ return steps_per_meter * meters; }
+//steps_per_km
+
+
+//speed
 /**
  * Conversion between km/h and m/s
  */
 #ifndef NETTOOL
-// scale to convert between km/h and m/s
-extern const float32e8_t kmh2ms;
-extern const float32e8_t ms2kmh;
+
 
 /**
  * Conversion between simutrans speed and m/s
  */
 
-// scale to convert between simutrans speed and m/s
-extern const float32e8_t simspeed2ms;
-extern const float32e8_t ms2simspeed;
 
-inline float32e8_t speed_to_v(const sint32 speed)
+inline float32e8_t legacy_speed_to_v(const sint32 speed)
 {
-	return simspeed2ms * speed;
+	return legacy_simspeed2ms * speed;
 }
 
-inline sint32 v_to_speed(const float32e8_t &v)
+inline sint32 legacy_v_to_speed(const float32e8_t &v)
 {
-	return (sint32)(ms2simspeed * v + float32e8_t::half);
+	return (sint32)(legacy_ms2simspeed * v + float32e8_t::half);
 }
 
-inline sint64 seconds_to_ticks(uint32 seconds, uint16 meters_per_tile)
+inline sint64 legacy_seconds_to_ticks(uint32 seconds, uint16 meters_per_tile)
 {
 	return ((sint64)seconds * 22764L) / (sint64)(meters_per_tile);
 }
@@ -196,7 +229,7 @@ inline sint64 seconds_to_ticks(uint32 seconds, uint16 meters_per_tile)
 // scale to convert between simutrans steps and meters
 //const float32e8_t yards2m((uint32) 10 * VEHICLE_SPEED_FACTOR, (uint32) 36 * 1024 * DT_TIME_FACTOR);
 //const float32e8_t m2yards((uint32) 36 * 1024 * DT_TIME_FACTOR, (uint32) 10 * VEHICLE_SPEED_FACTOR);
-extern const float32e8_t steps2yards;
+extern const float32e8_t legacy_steps2yards;
 //
 //inline float32e8_t yards_to_x(const sint32 yards)
 //{
@@ -209,8 +242,8 @@ extern const float32e8_t steps2yards;
 //}
 
 #define KMH_MIN 1
-extern const sint32 SPEED_MIN; 
-extern const float32e8_t V_MIN;
+//extern const sint32 SPEED_MIN;
+extern const float32e8_t LEGACY_V_MIN;
 #endif //ndef NETTOOL
 /*
  * Converts speed (yards per tick) into tiles per month
@@ -222,6 +255,7 @@ extern const float32e8_t V_MIN;
  * There are too many different units used in simutrans-extended
  * But this handles... some of them.
  */
+/*
 inline sint64 seconds_from_meters_and_kmh(sint64 meters, sint64 kmh) {
 	// The logic is:
 	// ( (x meters / (1000 m/km) / (y km/hr) ) * 60 min/hr * 60 sec/min
@@ -236,6 +270,7 @@ inline sint64 kmh_from_meters_and_seconds(sint64 meters, sint64 seconds) {
 	// The numbers are the same as seconds_from_meters_and_kmh
 	return (meters * 36ll + 5ll) / (seconds * 10ll);
 }
+ */
 inline sint64 tenths_from_meters_and_kmh(sint64 meters, sint64 kmh) {
 	// The logic is:
 	// ( (x meters / (1000 m/km) / (y km/hr) ) * 60 min/hr * 10 tenths/min
@@ -250,6 +285,7 @@ inline sint64 kmh_from_meters_and_tenths(sint64 meters, sint64 tenths) {
 	// The numbers are the same as tenths_from_meters_and_kmh
 	return (meters * 6ll + 5ll) / (tenths * 10ll);
 }
+/*
 inline sint64 minutes_from_meters_and_kmh(sint64 meters, sint64 kmh) {
 	// The logic is:
 	// ( (x meters / (1000 m/km) / (y km/hr) ) * 60 min/hr
@@ -264,6 +300,6 @@ inline sint64 kmh_from_meters_and_minutes(sint64 meters, sint64 minutes) {
 	// The numbers are the same as minutes_from_meters_and_kmh
 	return (meters * 6ll + 50ll) / (minutes * 100ll);
 }
-
+*/
 
 #endif

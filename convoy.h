@@ -294,7 +294,7 @@ public:
 	virtual float32e8_t get_continuous_power() 
 	{ 
 #ifndef NETTOOL
-		return get_power_summary(get_vehicle_summary().max_speed * kmh2ms); 
+		return get_power_summary(get_vehicle_summary().max_speed * legacy_kmh2ms);
 
 #else
 		return get_power_summary(get_vehicle_summary().max_speed);
