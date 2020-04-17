@@ -169,30 +169,72 @@ extern const float32e8_t legacy_kmh2ms;
 extern const float32e8_t legacy_ms2kmh;
 
 
+
+extern uint16 meters_per_tile2;
+
+extern float32e8_t seconds_per_tick;
+
 extern float32e8_t meters_per_step;
 extern float32e8_t steps_per_meter;
 
 
-void simunits_init_distance_scale(uint16 meters_per_tile);
-void simunits_init_time_scale();
+void simunits_init(uint16 meters_per_tile);
 
 //time
 inline sint64 ticks_to_seconds(sint64 ticks, uint16 meters_per_tile){
-    assert(ticks < 1L<<32);
-    return meters_per_tile * ticks * 30L * 6L / (4096L * 1000L);
+    assert(ticks < 1L<<43); //ticks above 2^43 could overflow, which is an impressive amount of 101806 real-world days and thus should never happen.
+    return (meters_per_tile * ticks * 9L) / (2048L * 100L);
 }
-inline float32e8_t ticks_to_seconds(sint32 ticks, uint16 meters_per_tile){return (float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE) / ((1<<YARDS_PER_VEHICLE_STEP_SHIFT) * legacy_simspeed2ms)) * ticks;}
+inline sint64 ticks_to_seconds(sint64 ticks){return ticks_to_seconds(ticks,meters_per_tile2);}
+inline float32e8_t ticks_to_fseconds(sint32 ticks, uint16 meters_per_tile){return (float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE) / ((1 << YARDS_PER_VEHICLE_STEP_SHIFT) * legacy_simspeed2ms)) * ticks;}
+inline float32e8_t ticks_to_fseconds(sint32 ticks){return seconds_per_tick * ticks;}
 
-inline sint64 seconds_to_ticks(uint32 seconds, uint16 meters_per_tile) {
-    assert(seconds>=0);
-    return (((sint64) seconds * 204800) / ((sint64) meters_per_tile * 9));
+//TODO Yet another time unit. Check if there is a good reason for this unit otherwise use seconds instead.
+inline sint64 ticks_to_tenths_of_minutes(sint64 ticks)
+{
+    return ticks_to_seconds(ticks) / 6L;
 }
-inline sint64 seconds_to_ticks(const float32e8_t& seconds, uint16 meters_per_tile);
+
+
+inline sint64 seconds_to_ticks(uint32 seconds, uint16 meters_per_tile) {return (((sint64) seconds * 204800) / ((sint64) meters_per_tile * 9));}
+//inline sint64 seconds_to_ticks(const float32e8_t& seconds, uint16 meters_per_tile);
+
+/**
+ * @pre simunits is initialised
+ * @param seconds
+ * @return
+ */
+inline sint64 seconds_to_ticks(uint32 seconds){return (((sint64) seconds * 204800) / ((sint64) meters_per_tile2 * 9));}
+//inline sint64 seconds_to_ticks(const float32e8_t& seconds);
+
 
 //distance
-float32e8_t steps_to_meters(const float32e8_t &steps){ return meters_per_step * steps; }
-float32e8_t meters_to_steps(const float32e8_t &meters){ return steps_per_meter * meters; }
+inline float32e8_t steps_to_meters(const float32e8_t &steps, uint16 meters_per_tile){ return steps * float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE);}
+inline float32e8_t meters_to_steps(const float32e8_t &meters, uint16 meters_per_tile){ return meters * float32e8_t(VEHICLE_STEPS_PER_TILE, meters_per_tile);}
+
+/**
+ * @pre simunits is initialised
+ * @param steps
+ * @return
+ */
+inline float32e8_t steps_to_meters(const float32e8_t &steps){assert(meters_per_step>0); return meters_per_step * steps; }
+/**
+ * @pre simunits is initialised
+ * @param meters
+ * @return
+ */
+inline float32e8_t meters_to_steps(const float32e8_t &meters){assert(meters_per_step>0); return steps_per_meter * meters; }
+
+
 //steps_per_km
+
+
+
+
+
+
+
+
 
 
 //speed

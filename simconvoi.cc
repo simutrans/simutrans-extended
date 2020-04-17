@@ -5360,7 +5360,7 @@ void convoi_t::laden() //"load" (Babelfish)
 		}
 		else
 		{
-			latest_journey_time = welt->ticks_to_tenths_of_minutes(arrival_time - departures.get(this_departure).departure_time);
+			latest_journey_time = ticks_to_tenths_of_minutes(arrival_time - departures.get(this_departure).departure_time);
 		}
 		if(latest_journey_time <= 0)
 		{
@@ -5407,7 +5407,7 @@ void convoi_t::laden() //"load" (Babelfish)
 			FOR(int_map, const& iter, best_times_in_schedule)
 			{
 				id_pair pair(iter.key, this_halt_id);
-				const sint32 this_journey_time = (uint32)welt->ticks_to_tenths_of_minutes(arrival_time - iter.value);
+				const sint32 this_journey_time = (uint32)ticks_to_tenths_of_minutes(arrival_time - iter.value);
 
 				departures_already_booked.set(pair, iter.value);
 				const average_tpl<uint32> *average_check = average_journey_times.access(pair);
@@ -7828,7 +7828,7 @@ uint32 convoi_t::calc_reverse_delay() const
 				journey_time_tenths_minutes = welt->travel_time_tenths_from_distance(distance, current_average_speed);
 			}
 
-			journey_time_ticks = welt->get_seconds_to_ticks(journey_time_tenths_minutes * 6);
+			journey_time_ticks = seconds_to_ticks(journey_time_tenths_minutes * 6);
 			eta = etd;
 			eta += journey_time_ticks;
 			etd += journey_time_ticks;

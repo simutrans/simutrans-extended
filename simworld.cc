@@ -5862,8 +5862,8 @@ void karte_t::step_time_interval_signals()
 {
 	if (!time_interval_signals_to_check.empty())
 	{
-		const sint64 caution_interval_ticks = get_seconds_to_ticks(settings.get_time_interval_seconds_to_caution());
-		const sint64 clear_interval_ticks = get_seconds_to_ticks(settings.get_time_interval_seconds_to_clear());
+		const sint64 caution_interval_ticks = ::seconds_to_ticks(settings.get_time_interval_seconds_to_caution());
+		const sint64 clear_interval_ticks = ::seconds_to_ticks(settings.get_time_interval_seconds_to_clear());
 
 		for (vector_tpl<signal_t*>::iterator iter = time_interval_signals_to_check.begin(); iter != time_interval_signals_to_check.end();)
 		{
@@ -5982,13 +5982,13 @@ sint64 karte_t::calc_ready_time(ware_t ware, koord origin_pos) const
 	if (ware.is_freight())
 	{
 		const uint32 tenths_of_minutes = walk_haulage_time_tenths_from_distance(distance);
-		const sint64 carting_time = get_seconds_to_ticks(tenths_of_minutes * 6);
+		const sint64 carting_time = ::seconds_to_ticks(tenths_of_minutes * 6);
 		ready_time += carting_time;
 	}
 	else
 	{
 		const uint32 seconds = walking_time_secs_from_distance(distance);
-		const sint64 walking_time = get_seconds_to_ticks(seconds);
+		const sint64 walking_time = ::seconds_to_ticks(seconds);
 		ready_time += walking_time;
 	}
 
@@ -6968,7 +6968,7 @@ sint32 karte_t::generate_passengers_or_mail(const goods_desc_t * wtyp)
 
 			if(settings.get_random_pedestrians() && wtyp == goods_manager_t::passengers) 
 			{
-				pedestrian_t::generate_pedestrians_at(origin_pos, units_this_step, get_seconds_to_ticks(walking_time * 6));
+				pedestrian_t::generate_pedestrians_at(origin_pos, units_this_step, ::seconds_to_ticks(walking_time * 6));
 			}
 				
 			if(city)
@@ -7405,7 +7405,7 @@ return_on_foot:
 						destination_pos_3d.x = destination_pos.x;
 						destination_pos_3d.y = destination_pos.y;
 						destination_pos_3d.z = lookup_hgt(destination_pos);
-						pedestrian_t::generate_pedestrians_at(destination_pos_3d, units_this_step, get_seconds_to_ticks(walking_time * 6));
+						pedestrian_t::generate_pedestrians_at(destination_pos_3d, units_this_step, ::seconds_to_ticks(walking_time * 6));
 					}
 					if(destination_town)
 					{

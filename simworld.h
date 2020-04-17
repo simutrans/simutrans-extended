@@ -667,12 +667,6 @@ private:
 	uint32 last_interaction;
 
 	/**
-	 * ms, when the last step was done.
-	 * To calculate the fps and the simloops.
-	 */
-	uint32 last_step_time; //todo seems to be unused
-
-	/**
 	 * ms, when the next step is to be done.
 	 * To calculate the fps and the simloops.
 	 */
@@ -1552,52 +1546,6 @@ public:
 		return value / adjustment_factor;
 	}
 
-	/**
-	 * Standard timing conversion
-	 * @author: jamespetts
-	 */
-	inline sint64 ticks_to_tenths_of_minutes(sint64 ticks) const //TODO the world is not a unit converter
-	{
-		return ticks_to_seconds(ticks) / 6L;
-	}
-
-	/**
-	 * Finer timing conversion for UI only
-	 * @author: jamespetts
-	 */
-	inline sint64 ticks_to_seconds(sint64 ticks) const //TODO the world is not a unit converter
-	{
-	    assert(ticks>=0);
-	    assert(get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L)==::ticks_to_seconds(ticks, get_settings().get_meters_per_tile()));
-	    ::ticks_to_seconds(ticks, get_settings().get_meters_per_tile());
-		/*
-		 * Currently this is altered according to meters_per_tile / 1000.
-		 * This is a "convention" to speed up time when changing distance;
-		 * it needs to be changed (separated into a new world setting).
-		 *
-		 * The rest of this is much weirder: there are by default
-		 * (4096 / 180) = 22.7555555... ticks per second.
-		 * This also needs to be changed because it's stupid; it's based on
-		 * old settings which are now in simunits.h
-		 */
-		//return get_settings().get_meters_per_tile() * ticks * 30L * 6L / (4096L * 1000L);
-	}
-#ifndef NETTOOL	
-	/** 
-	* Reverse conversion of the above.
-	*/
-	inline sint64 get_seconds_to_ticks(uint32 seconds) const //TODO the world is not a unit converter
-	{
-	    assert(seconds>=0);
-		// S = a * T * c * d / (e * f)
-		// S / a = T * c * d / (e * f)
-		// S / a / c / d = T / (e * f)
-		// (S / a / c / d) * (e * f) = T
-		assert((((sint64)seconds * 4096L * 1000L) / (sint64)get_settings().get_meters_per_tile() / 30L / 6L) == ::seconds_to_ticks(seconds, get_settings().get_meters_per_tile()));
-
-		return ::seconds_to_ticks(seconds, get_settings().get_meters_per_tile());
-	}
-#endif
 	/**
 	* Adds a single tile of a building to the relevant world list for passenger 
 	* and mail generation purposes
@@ -2696,7 +2644,7 @@ public:
 
 	inline void sprintf_ticks(char *p, size_t size, sint64 ticks) const //todo world is not a unit printer
 	{
-		uint32 seconds = (uint32)ticks_to_seconds(ticks);
+		uint32 seconds = (uint32)::ticks_to_seconds(ticks);
 		sprintf_time_secs(p, size, seconds);
 	}
 

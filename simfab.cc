@@ -1,10 +1,10 @@
 /*
  * Fabrikfunktionen und Fabrikbau
  *
- * Hansjörg Malthaner
+ * Hansjï¿½rg Malthaner
  *
  *
- * 25.03.00 Anpassung der Lagerkapazitäten: min. 5 normale Lieferungen
+ * 25.03.00 Anpassung der Lagerkapazitï¿½ten: min. 5 normale Lieferungen
  *          sollten an Lager gehalten werden.
  */
 
@@ -2425,7 +2425,7 @@ void fabrik_t::verteile_waren(const uint32 product)
 	{
 		nearby_halt_t nearby_halt = nearby_freight_halts[(i + output[product].index_offset) % count];
 
-		// Über all Ziele iterieren ("Iterate over all targets" - Google)
+		// ï¿½ber all Ziele iterieren ("Iterate over all targets" - Google)
 		for(uint32 n = 0; n < lieferziele.get_count(); n ++)
 		{
 			// prissi: this way, the halt that is tried first will change. As a result, if all destinations are empty, it will be spread evenly
@@ -3902,7 +3902,7 @@ uint32 fabrik_t::get_time_to_consume_stock(uint32 index)
 	const sint64 tick_units = input_capacity * welt->ticks_per_world_month;
 
 	const sint32 ticks_to_consume = tick_units / max(1, consumed_per_month);
-	return welt->ticks_to_tenths_of_minutes(ticks_to_consume);
+	return ticks_to_tenths_of_minutes(ticks_to_consume);
 
 	/*
 

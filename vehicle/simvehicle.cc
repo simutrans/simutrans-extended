@@ -5147,8 +5147,8 @@ bool rail_vehicle_t::can_enter_tile(const grund_t *gr, sint32 &restart_speed, ui
 					allow_block_reserver = false;
 					const sint64 last_passed = this_halt->get_train_last_departed(ribi);
 
-					const sint64 caution_interval_ticks = welt->get_seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_caution());
-					const sint64 clear_interval_ticks =  welt->get_seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_clear());
+					const sint64 caution_interval_ticks = seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_caution());
+					const sint64 clear_interval_ticks =  seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_clear());
 					const sint64 ticks = welt->get_ticks();
 
 					set_working_method(sig->get_desc()->get_working_method());
@@ -5260,7 +5260,7 @@ bool rail_vehicle_t::can_enter_tile(const grund_t *gr, sint32 &restart_speed, ui
 		restart_speed = 0;
 		if(((working_method == time_interval || working_method == time_interval_with_telegraph) && cnv->get_state() == convoi_t::DRIVING && !(signal_current && signal_current->get_state() == roadsign_t::danger)))
 		{
-			const sint32 emergency_stop_duration = welt->get_seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_caution() / 2);
+			const sint32 emergency_stop_duration = seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_caution() / 2);
 			convoihandle_t c = w->get_reserved_convoi();
 			const koord3d ground_pos = gr->get_pos();
 			for(sint32 i = 0; i < c->get_vehicle_count(); i ++)
@@ -6273,8 +6273,8 @@ sint32 rail_vehicle_t::block_reserver(route_t *route, uint16 start_index, uint16
 							{
 								last_passed = signal->get_train_last_passed();
 							}
-							const sint64 caution_interval_ticks = welt->get_seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_caution());
-							const sint64 clear_interval_ticks =  welt->get_seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_clear());
+							const sint64 caution_interval_ticks = seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_caution());
+							const sint64 clear_interval_ticks =  seconds_to_ticks(welt->get_settings().get_time_interval_seconds_to_clear());
 							const sint64 ticks = welt->get_ticks();
 
 							if(last_passed + caution_interval_ticks > ticks)

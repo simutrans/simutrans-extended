@@ -286,7 +286,7 @@ float32e8_t convoy_t::calc_min_braking_distance(const weight_summary_t &weight, 
 sint32 convoy_t::calc_min_braking_distance(const settings_t &settings, const weight_summary_t &weight, sint32 speed)
 {
 	const float32e8_t x = calc_min_braking_distance(weight, legacy_speed_to_v(speed)) * _110_percent;
-	return settings.meters_to_steps(x);
+	return ::meters_to_steps(x);
 }
 
 inline float32e8_t _calc_move(const float32e8_t &a, const float32e8_t &t, const float32e8_t &v0)
@@ -303,15 +303,15 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 		// Shorten the process. 
 		akt_speed = min(max(akt_speed_soll, akt_speed), kmh_to_speed(calc_max_speed(weight)));
 		akt_v = legacy_speed_to_v(akt_speed);
-		sp_soll += (sint32)(settings.meters_to_steps(delta_s * akt_v) * legacy_steps2yards); // sp_soll in simutrans yards, dx in m
+		sp_soll += (sint32)(::meters_to_steps(delta_s * akt_v) * legacy_steps2yards); // sp_soll in simutrans yards, dx in m
 	}
 	else
 	{
 		const float32e8_t fweight = weight.weight; // convoy's weight in kg
 		const float32e8_t Frs = g_accel * (get_adverse_summary().fr * weight.weight_cos + weight.weight_sin); // Frs in N, weight.weight_cos and weight.weight_sin are calculated per vehicle due to vehicle specific slope angle.
 		const float32e8_t vlim = legacy_speed_to_v(next_speed_limit); // vlim in m/s, next_speed_limit in simutrans vehicle speed.
-		const float32e8_t xlim = settings.steps_to_meters(steps_til_limit); // xbrk in m, steps_til_limit in simutrans steps
-		const float32e8_t xbrk = settings.steps_to_meters(steps_til_brake); // xbrk in m, steps_til_brake in simutrans steps
+		const float32e8_t xlim = ::steps_to_meters(steps_til_limit); // xbrk in m, steps_til_limit in simutrans steps
+		const float32e8_t xbrk = ::steps_to_meters(steps_til_brake); // xbrk in m, steps_til_brake in simutrans steps
 		//float32e8_t vsoll = min(legacy_speed_to_v(akt_speed_soll), legacy_kmh2ms * min(adverse.max_speed, get_vehicle_summary().max_speed)); // vsoll in m/s, akt_speed_soll in simutrans vehicle speed. "Soll" translates to "Should", so this is the speed limit.
 		const float32e8_t check_vsoll_1 = legacy_speed_to_v(akt_speed_soll);
 		const float32e8_t check_vsoll_2 = legacy_kmh2ms * min(adverse.max_speed, get_vehicle_summary().max_speed);
@@ -444,7 +444,7 @@ void convoy_t::calc_move(const settings_t &settings, long delta_t, const weight_
 		}
 		akt_v = v;
 		akt_speed = legacy_v_to_speed(v); // akt_speed in simutrans vehicle speed, v in m/s
-		sp_soll += (sint32)(settings.meters_to_steps(dx) * legacy_steps2yards); // sp_soll in simutrans yards, dx in m
+		sp_soll += (sint32)(::meters_to_steps(dx) * legacy_steps2yards); // sp_soll in simutrans yards, dx in m
 	}
 }
 

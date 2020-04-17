@@ -1922,7 +1922,7 @@ uint32 haltestelle_t::calc_service_frequency(halthandle_t destination, uint8 cat
 		{
 			// Check whether the spacing setting affects things.
 			const sint64 spacing_ticks = welt->ticks_per_world_month / (sint64)registered_lines[i]->get_schedule()->get_spacing();
-			uint32 spacing_time = welt->ticks_to_tenths_of_minutes(spacing_ticks);
+			uint32 spacing_time = ticks_to_tenths_of_minutes(spacing_ticks);
 			timing = max(spacing_time, timing);
 		}
 
@@ -2473,7 +2473,7 @@ bool haltestelle_t::fetch_goods(slist_tpl<ware_t> &load, const goods_desc_t *goo
 						uint32 test_time = 0;
 						halthandle_t test_transfer;
 						path_explorer_t::get_catg_path_between(catg_index, self, destination, test_time, test_transfer, next_to_load->g_class);
-						const sint64 test_time_in_ticks = welt->get_seconds_to_ticks(test_time * 6);
+						const sint64 test_time_in_ticks = seconds_to_ticks(test_time * 6);
 						best_arrival_time = test_time_in_ticks + welt->get_ticks();
 					}
 
@@ -2630,7 +2630,7 @@ bool haltestelle_t::fetch_goods(slist_tpl<ware_t> &load, const goods_desc_t *goo
 					{
 						// For passengers, check whether to downgrade to or from this class.
 						const sint64 journey_time_ticks = this_arrival_time - welt->get_ticks();
-						const sint64 journey_time_seconds = welt->ticks_to_seconds(journey_time_ticks);
+						const sint64 journey_time_seconds = ticks_to_seconds(journey_time_ticks);
 
 						const sint64 ideal_comfort_time_multiplier = (sint64)next_to_load->comfort_preference_percentage;
 						const sint64 ideal_comfort_time = (journey_time_seconds * ideal_comfort_time_multiplier) / 100ll;
@@ -2837,7 +2837,7 @@ bool haltestelle_t::vereinige_waren(const ware_t &ware) //"unite were" (Google)
 			* OLD SYSTEM - did not take account of origins and timings when merging.
 			*
 			* // es wird auf basis von Haltestellen vereinigt
-			* // prissi: das ist aber ein Fehler für all anderen Güter, daher Zielkoordinaten für alles, was kein passagier ist ...
+			* // prissi: das ist aber ein Fehler fï¿½r all anderen Gï¿½ter, daher Zielkoordinaten fï¿½r alles, was kein passagier ist ...
 			*
 			* //it is based on uniting stops.
 			* //prissi: but that is a mistake for all other goods, therefore, target coordinates for everything that is not a passenger ...
@@ -2929,11 +2929,11 @@ sint64 haltestelle_t::calc_ready_time(ware_t ware, bool arriving_from_vehicle, k
 
 	if (ware.is_freight())
 	{
-		ready_time += world()->get_seconds_to_ticks(transshipment_time * 6);
+		ready_time += seconds_to_ticks(transshipment_time * 6);
 	}
 	else // Passengers
 	{
-		ready_time += world()->get_seconds_to_ticks(transfer_time * 6);
+		ready_time += seconds_to_ticks(transfer_time * 6);
 	}
 
 	if (/*!arriving_from_vehicle &&*/ ware.get_ziel() == self)
@@ -2951,13 +2951,13 @@ sint64 haltestelle_t::calc_ready_time(ware_t ware, bool arriving_from_vehicle, k
 		if (ware.is_freight())
 		{
 			const uint32 tenths_of_minutes = world()->walk_haulage_time_tenths_from_distance(distance);
-			const sint64 carting_time = world()->get_seconds_to_ticks(tenths_of_minutes * 6);
+			const sint64 carting_time = seconds_to_ticks(tenths_of_minutes * 6);
 			ready_time += carting_time;
 		}
 		else
 		{
 			const uint32 seconds = world()->walking_time_secs_from_distance(distance);
-			const sint64 walking_time = world()->get_seconds_to_ticks(seconds);
+			const sint64 walking_time = seconds_to_ticks(seconds);
 			ready_time += walking_time;
 		}
 	}
@@ -3204,10 +3204,10 @@ void haltestelle_t::liefere_an(ware_t ware, uint8 walked_between_stations)
 			const sint64 best_arrival_time_destination_stop = calc_earliest_arrival_time_at(ware.get_ziel(), dummy, ware.get_desc()->get_catg_index(), ware.g_class);
 			sint64 best_arrival_time_transfer = ware.get_zwischenziel() != ware.get_ziel() ? calc_earliest_arrival_time_at(ware.get_zwischenziel(), dummy, ware.get_desc()->get_catg_index(), ware.g_class) : SINT64_MAX_VALUE;
 
-			const sint64 arrival_after_walking_to_destination = welt->get_seconds_to_ticks(welt->walking_time_tenths_from_distance((uint32)straight_line_distance_destination) * 6) + welt->get_ticks();
+			const sint64 arrival_after_walking_to_destination = seconds_to_ticks(welt->walking_time_tenths_from_distance((uint32)straight_line_distance_destination) * 6) + welt->get_ticks();
 
 			const uint16 straight_line_distance_to_next_transfer = shortest_distance(get_init_pos(), ware.get_zwischenziel()->get_next_pos(get_next_pos(ware.get_zwischenziel()->get_basis_pos())));
-			const sint64 arrival_after_walking_to_next_transfer = welt->get_seconds_to_ticks(welt->walking_time_tenths_from_distance((uint32)straight_line_distance_to_next_transfer) * 6) + welt->get_ticks();
+			const sint64 arrival_after_walking_to_next_transfer = seconds_to_ticks(welt->walking_time_tenths_from_distance((uint32)straight_line_distance_to_next_transfer) * 6) + welt->get_ticks();
 
 			sint64 extra_time_to_ultimate_destination = 0;
 			if(best_arrival_time_transfer < SINT64_MAX_VALUE)
@@ -3218,7 +3218,7 @@ void haltestelle_t::liefere_an(ware_t ware, uint8 walked_between_stations)
 					ware.set_zwischenziel(ware.get_ziel());
 					best_arrival_time_transfer = best_arrival_time_destination_stop;
 					const uint16 distance_destination_stop_to_destination = shortest_distance(ware.get_zielpos(), ware.get_ziel()->get_next_pos(ware.get_zielpos()));
-					extra_time_to_ultimate_destination = welt->get_seconds_to_ticks(welt->walking_time_tenths_from_distance((uint32)distance_destination_stop_to_destination) * 6);
+					extra_time_to_ultimate_destination = seconds_to_ticks(welt->walking_time_tenths_from_distance((uint32)distance_destination_stop_to_destination) * 6);
 				}
 
 				if(destination_is_within_coverage && arrival_after_walking_to_destination < best_arrival_time_transfer + extra_time_to_ultimate_destination)

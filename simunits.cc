@@ -32,11 +32,18 @@ const float32e8_t legacy_steps2yards((uint32)1 << YARDS_PER_VEHICLE_STEP_SHIFT);
 const sint32 SPEED_MIN = kmh_to_speed(KMH_MIN);
 const float32e8_t LEGACY_V_MIN = legacy_kmh2ms * KMH_MIN;
 
+uint16 meters_per_tile2;
+
+float32e8_t seconds_per_tick;
+
 float32e8_t meters_per_step;
 float32e8_t steps_per_meter;
 
-void simunits_init_distance_scale(uint16 meters_per_tile){
-    steps_per_meter = float32e8_t(VEHICLE_STEPS_PER_TILE, meters_per_tile);
-    meters_per_step = float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE);
-};
-void simunits_init_time_scale();
+void simunits_init(uint16 meters_per_tile){
+    ::meters_per_tile2=meters_per_tile;
+
+    seconds_per_tick = ticks_to_fseconds(1, meters_per_tile2);
+
+    steps_per_meter = meters_to_steps(1, meters_per_tile);
+    meters_per_step = steps_to_meters(1, meters_per_tile);
+}

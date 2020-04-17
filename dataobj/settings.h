@@ -553,7 +553,7 @@ private:
 	bool allow_making_public;
 #ifndef NETTOOL
 	//float32e8_t simtime_factor;   //unused
-	float32e8_t meters_per_step;    //todo the settings are not a cache!
+	//float32e8_t meters_per_step;    //todo the settings are not a cache!
 	float32e8_t steps_per_meter;    //todo see above
 	float32e8_t seconds_per_tick;   //todo see above
 #endif
@@ -1114,10 +1114,10 @@ public: //todo public attributes
     //TODO Move to simunits
 	//float32e8_t get_simtime_factor() const { return simtime_factor; } //unused
 	float32e8_t meters_to_steps(const float32e8_t &meters) const { return steps_per_meter * meters; }
-	float32e8_t steps_to_meters(const float32e8_t &steps) const { return meters_per_step * steps; }
+	//float32e8_t steps_to_meters(const float32e8_t &steps) const { return meters_per_step * steps; }
 	float32e8_t ticks_to_seconds(sint32 delta_t) const {
-	    assert(seconds_per_tick * delta_t==::ticks_to_seconds(delta_t, meters_per_tile));
-	    return ::ticks_to_seconds(delta_t, meters_per_tile);
+	    assert(seconds_per_tick * delta_t== ::ticks_to_fseconds(delta_t));
+	    return ::ticks_to_fseconds(delta_t);
 	}
 #endif
 	uint8 get_max_elevated_way_building_level() const { return max_elevated_way_building_level; }

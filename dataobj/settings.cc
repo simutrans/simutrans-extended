@@ -2995,15 +2995,17 @@ void settings_t::set_allow_routing_on_foot(bool value)
 
 void settings_t::set_meters_per_tile(uint16 value) 
 { 
-	meters_per_tile = value; 
-	steps_per_km = (1000 * VEHICLE_STEPS_PER_TILE) / meters_per_tile; 
+	meters_per_tile = value;
+
+    simunits_init(meters_per_tile);
+	steps_per_km = (1000 * VEHICLE_STEPS_PER_TILE) / meters_per_tile;
 	//simtime_factor = float32e8_t(meters_per_tile, 1000);
-	steps_per_meter = float32e8_t(VEHICLE_STEPS_PER_TILE, meters_per_tile);
-	meters_per_step = float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE);
+	//steps_per_meter = float32e8_t(VEHICLE_STEPS_PER_TILE, meters_per_tile);
+	//meters_per_step = float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE);
 
 	// As legacy_simspeed2ms = meters_per_yard / seconds_per_tick
 	// seconds_per_tick = meters_per_step / yards_per_step / legacy_simspeed2ms
-	seconds_per_tick = meters_per_step / ((1<<YARDS_PER_VEHICLE_STEP_SHIFT) * legacy_simspeed2ms);
+	seconds_per_tick = float32e8_t(meters_per_tile, VEHICLE_STEPS_PER_TILE) / ((1<<YARDS_PER_VEHICLE_STEP_SHIFT) * legacy_simspeed2ms);//todo
 }
 
 void settings_t::set_scale()
