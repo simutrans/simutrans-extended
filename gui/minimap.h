@@ -101,25 +101,17 @@ private:
 		bool start_diagonal;
 
 		line_segment_t() {}
-		line_segment_t( koord s, uint8 so, koord e, uint8 eo, schedule_t *f, player_t *p, uint8 cc, bool diagonal ) {
-			schedule = f;
-			wtyp = f->get_waytype();
-			player = p;
-			colorcount = cc;
-			start_diagonal = diagonal;
-			if(  s.x<e.x  ||  (s.x==e.x  &&  s.y<e.y)  ) {
-				start = s;
-				end = e;
-				start_offset = so;
-				end_offset = eo;
-			}
-			else {
-				start = e;
-				end = s;
-				start_offset = eo;
-				end_offset = so;
-			}
-		}
+		line_segment_t( koord s, uint8 so, koord e, uint8 eo, schedule_t *f, player_t *p, uint8 cc, bool diagonal ):
+			start((s.x<e.x  ||  (s.x==e.x  &&  s.y<e.y)) ? s : e),
+			end((s.x<e.x  ||  (s.x==e.x  &&  s.y<e.y)) ? e : s),
+			schedule(f),
+			player(p),
+			wtyp(f->get_waytype()),
+			colorcount(cc),
+			start_offset((s.x<e.x  ||  (s.x==e.x  &&  s.y<e.y)) ? so : eo),
+			end_offset((s.x<e.x  ||  (s.x==e.x  &&  s.y<e.y)) ? eo : so),
+			start_diagonal(diagonal)
+		{}
 
 		bool operator==(const line_segment_t & k) const;
 	};
@@ -140,7 +132,6 @@ private:
 	void add_to_schedule_cache( convoihandle_t cnv, bool with_waypoints );
 
 	/**
-	 * //TODO Why are the following two static?
 	 * 0: normal
 	 * everything else: special map
 	 */

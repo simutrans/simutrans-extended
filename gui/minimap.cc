@@ -99,29 +99,6 @@ const uint8 minimap_t::severity_color[MAX_SEVERITY_COLORS] =
 	COL_DARK_GREEN, 138, COL_LIGHT_GREEN, COL_LIGHT_YELLOW, COL_YELLOW, 30, COL_LIGHT_ORANGE, COL_ORANGE, COL_ORANGE_RED, COL_RED // Green/yellow/orange/red
 };
 
-/*
-minimap_t::line_segment_t::line_segment_t(koord s, uint8 so, koord e, uint8 eo, schedule_t* sched, player_t* p, uint8 cc, bool diagonal)
-{
-	schedule = sched;
-	waytype = sched->get_waytype();
-	player = p;
-	colorcount = cc;
-	start_diagonal = diagonal;
-	if(  s.x<e.x  ||  (s.x==e.x  &&  s.y<e.y)  ) {
-		start = s;
-		end = e;
-		start_offset = so;
-		end_offset = eo;
-	}
-	else {
-		start = e;
-		end = s;
-		start_offset = eo;
-		end_offset = so;
-	}
-}
-*/
-
 // helper function for line segment_t
 bool minimap_t::line_segment_t::operator==(const line_segment_t & other) const
 {
@@ -228,6 +205,7 @@ void minimap_t::add_to_schedule_cache( convoihandle_t cnv, bool with_waypoints )
 			continue;
 		}
 
+		//Key is a coord coded as (x,y) -> x+y*max_x
 		const int key = temp_stop.x + temp_stop.y*world->get_size().x;
 		waypoint_hash.put( key );
 		// now get the offset
@@ -413,7 +391,26 @@ static void display_thick_line( scr_coord_val x1, scr_coord_val y1, scr_coord_va
 }
 
 
-static void line_segment_draw( waytype_t type, scr_coord start, uint8 start_offset, scr_coord end, uint8 end_offset, bool diagonal, PIXVAL colore )
+static void display_station_node(scr_coord_val x, scr_coord_val y, int radius, PIXVAL color, int diagonal_dist){
+	int out_radius = (radius == 0) ? 1 : radius;
+	display_filled_circle_rgb(x, y, radius, color );
+	display_circle_rgb( x, y, out_radius, color_idx_to_rgb(COL_BLACK) );
+	if(  diagonal_dist>0  ) {
+		display_filled_circle_rgb(x+diagonal_dist, y+diagonal_dist, radius, color );
+		display_circle_rgb( x+diagonal_dist, y+diagonal_dist, out_radius, color_idx_to_rgb(COL_BLACK) );
+
+		for(  int i=1;  i < diagonal_dist;  i++  ) {
+			display_filled_circle_rgb(x+i, y+i, radius, color );
+		}
+
+		out_radius = sqrt_i32( 2*out_radius+1 );
+		display_direct_line_rgb( x+out_radius, y-out_radius, x+diagonal_dist+out_radius, y+diagonal_dist-out_radius, color_idx_to_rgb(COL_BLACK) );
+		display_direct_line_rgb( x-out_radius, y+out_radius, x+diagonal_dist-out_radius, y+diagonal_dist+out_radius, color_idx_to_rgb(COL_BLACK) );
+	}
+}
+
+
+static void line_segment_draw( waytype_t type, scr_coord start, uint8 start_offset, scr_coord end, uint8 end_offset, bool start_diagonal, PIXVAL colore )
 {
 	// airplanes are different, so we must check for them first
 	if(  type ==  air_wt  ) {
@@ -422,23 +419,7 @@ static void line_segment_draw( waytype_t type, scr_coord start, uint8 start_offs
 		draw_bezier_rgb( start.x + 1, start.y + 1, end.x + 1, end.y + 1, 50, 50, 50, 50, colore, 5, 5 );
 	}
 	else {
-		// add offsets
-		start.x += start_offset*3;
-		end.x += end_offset*3;
-		start.y += start_offset*3;
-		end.y += end_offset*3;
-		// due to isometric drawing, order may be swapped
-		if(  start.x > end.x  ) {
-			// but we need start.x <= end.x!
-			scr_coord temp = start;
-			start = end;
-			end = temp;
-			uint8 temp_offset = start_offset;
-			start_offset = end_offset;
-			end_offset = temp_offset;
-			diagonal ^= 1;
-		}
-		// now determine line style
+		//determine line style
 		uint8 thickness = 3;
 		bool dotted = false;
 		switch(  type  ) {
@@ -460,55 +441,35 @@ static void line_segment_draw( waytype_t type, scr_coord start, uint8 start_offs
 				thickness = 3;
 				dotted = true;
 		}
-		// start.x is always <= end.x ...
-		const int delta_y = end.y-start.y;
-		if(  (start.x-end.x)*delta_y == 0  ) {
-			// horizontal/vertical line
-			display_thick_line( start.x, start.y, end.x, end.y, colore, dotted, 5, 3, thickness );
+
+		//Reduce diagonal line overlap: genereally respect the requested start_diagonal,but ignore it when we can (more or less) safely start or end diagonally
+		if((bool)start_offset!=(bool)end_offset){
+			start_diagonal=(start_offset==0);
 		}
-		else {
-			// two segment
-			scr_coord mid;
-			int signum_y = delta_y/abs(delta_y);
-			// diagonal line to right bottom
-			if(  delta_y > 0  ) {
-				if(  end_offset  &&  !diagonal  ) {
-					// start with diagonal to avoid parallel lines
-					diagonal = true;
-				}
-				if(  start_offset  &&  diagonal  ) {
-					// end with diagonal to avoid parallel lines
-					diagonal = false;
-				}
-			}
-			// now draw a two segment line
-			if(  diagonal  ) {
-				// start with diagonal
-				if(  abs(delta_y) > end.x-start.x  ) {
-					mid.x = end.x;
-					mid.y = start.y + (end.x-start.x)*signum_y;
-				}
-				else {
-					mid.x = start.x + abs(delta_y);
-					mid.y = end.y;
-				}
-				display_thick_line( start.x, start.y, mid.x, mid.y, colore, dotted, 5, 3, thickness );
-				display_thick_line( mid.x, mid.y, end.x, end.y, colore, dotted, 5, 3, thickness );
-			}
-			else {
-				// end with diagonal
-				const int delta_y = end.y-start.y;
-				if(  abs(delta_y) > end.x-start.x  ) {
-					mid.x = start.x;
-					mid.y = end.y - (end.x-start.x)*signum_y;
-				}
-				else {
-					mid.x = end.x - abs(delta_y);
-					mid.y = start.y;
-				}
-				display_thick_line( start.x, start.y, mid.x, mid.y, colore, dotted, 5, 3, thickness );
-				display_thick_line( mid.x, mid.y, end.x, end.y, colore, dotted, 5, 3, thickness );
-			}
+
+		//We always start straight, then diagonal. If the other way round is desired, simply swap start and end.
+		if(start_diagonal ){
+			swap(start,end);
+			swap(start_offset, end_offset);
+		}
+
+		scr_coord delta = end-start;
+		start.x += 3*start_offset;
+		start.y += 3*start_offset;
+		end.x	+= 3*end_offset;
+		end.y	+= 3*end_offset;
+
+		delta = end - start;
+		const int d = min(abs(delta.x),abs(delta.y));//pick absolute of smallest component
+		const scr_coord diag = scr_coord(d*sgn(delta.x),d*sgn(delta.y));
+
+		scr_coord mid=end-diag;
+
+		if(start!=mid) {
+			display_thick_line(start.x, start.y, mid.x, mid.y, colore, dotted, 5, 3, thickness);
+		}
+		if(mid!=end) {
+			display_thick_line(mid.x, mid.y, end.x, end.y, colore, dotted, 5, 3, thickness);
 		}
 	}
 }
@@ -1801,19 +1762,7 @@ void minimap_t::draw(scr_coord pos)
 			radius ++;
 		}
 
-		int out_radius = (radius == 0) ? 1 : radius;
-		display_filled_circle_rgb( temp_stop.x, temp_stop.y, radius, color );
-		display_circle_rgb( temp_stop.x, temp_stop.y, out_radius, color_idx_to_rgb(COL_BLACK) );
-		if(  diagonal_dist>0  ) {
-			display_filled_circle_rgb( temp_stop.x+diagonal_dist, temp_stop.y+diagonal_dist, radius, color );
-			display_circle_rgb( temp_stop.x+diagonal_dist, temp_stop.y+diagonal_dist, out_radius, color_idx_to_rgb(COL_BLACK) );
-			for(  int i=1;  i < diagonal_dist;  i++  ) {
-				display_filled_circle_rgb( temp_stop.x+i, temp_stop.y+i, radius, color );
-			}
-			out_radius = sqrt_i32( 2*out_radius+1 );
-			display_direct_line_rgb( temp_stop.x+out_radius, temp_stop.y-out_radius, temp_stop.x+out_radius+diagonal_dist, temp_stop.y-out_radius+diagonal_dist, color_idx_to_rgb(COL_BLACK) );
-			display_direct_line_rgb( temp_stop.x-out_radius, temp_stop.y+out_radius, temp_stop.x-out_radius+diagonal_dist, temp_stop.y+out_radius+diagonal_dist, color_idx_to_rgb(COL_BLACK) );
-		}
+		display_station_node(temp_stop.x, temp_stop.y, radius, color, diagonal_dist);
 
 		if(  koord_distance( last_world_pos, station->get_basis_pos() ) <= 2  ) {
 			// draw stop name with an index if close to mouse
