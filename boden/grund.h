@@ -728,6 +728,12 @@ public:
 	*/
 
 	/**
+	 * calculate the removal costs of trees and groundobjs on this tile
+	 * @return removal costs
+	 */
+	sint64 get_tree_remove_costs() const;
+
+	/**
 	 * remove trees and groundobjs on this tile
 	 * called before building way or powerline
 	 * @return costs

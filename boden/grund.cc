@@ -1884,29 +1884,50 @@ bool grund_t::weg_erweitern(waytype_t wegtyp, ribi_t::ribi ribi)
 	return false;
 }
 
-/**
- * remove trees and groundobjs on this tile
- * called before building way or powerline
- * @return costs
- */
-sint64 grund_t::remove_trees()
-{
-	sint64 cost=0;
-	// remove all trees ...
-	while (baum_t* const d = find<baum_t>(0)) {
-		// we must mark it by hand, since we want to join costs
-		d->mark_image_dirty( get_image(), 0 );
-		delete d;
-		cost -= welt->get_settings().cst_remove_tree;
+//TODO somehow merge this function and the nearly similar code below
+sint64 grund_t::get_tree_remove_costs() const {
+	sint64 costs=0;
+	for(  uint8 i=0;  i<get_top();  i++  ) {
+		obj_t *obj = obj_bei(i);
+		switch(obj->get_typ()) {
+			case obj_t::baum: {
+				baum_t* const tree = (baum_t *)obj;
+				costs -= welt->get_settings().cst_remove_tree;
+				break;
+			}
+			case obj_t::groundobj: {
+				groundobj_t* go = (groundobj_t *) obj;
+				costs += go->get_desc()->get_value();
+				break;
+			}
+			default: break;
+		}
 	}
-	// remove all groundobjs ...
-	while (groundobj_t* const d = find<groundobj_t>(0)) {
-		cost += d->get_desc()->get_value();
-		delete d;
-	}
-	return cost;
+	return costs;
 }
 
+sint64 grund_t::remove_trees() {
+	sint64 costs=0;
+	for(  uint8 i=0;  i<get_top();  i++  ) {
+		obj_t *obj = obj_bei(i);
+		switch(obj->get_typ()) {
+			case obj_t::baum: {
+				baum_t* const tree = (baum_t *)obj;
+				delete tree;
+				costs -= welt->get_settings().cst_remove_tree;
+				break;
+			}
+			case obj_t::groundobj: {
+				groundobj_t* gr_obj = (groundobj_t *) obj;
+				costs += gr_obj->get_desc()->get_value();
+				delete gr_obj;
+				break;
+			}
+			default: break;
+		}
+	}
+	return costs;
+}
 
 
 sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player, koord3d_vector_t *route)
