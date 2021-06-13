@@ -1883,21 +1883,31 @@ bool grund_t::weg_erweitern(waytype_t wegtyp, ribi_t::ribi ribi)
 	}
 	return false;
 }
+struct {
+	static void visit(baum_t* tree){delete tree;}
+	static void visit(groundobj_t* groundobj){delete groundobj;}
+} tree_groundobj_remove_visitor;
+struct {
+	static void visit(const baum_t*){}
+	static void visit(const groundobj_t*){}
+} tree_groundobj_noop_visitor;
 
-//TODO somehow merge this function and the nearly similar code below
-sint64 grund_t::get_tree_remove_costs() const {
+template<typename this_T, typename visitor_T>
+sint64 grund_t::visit_trees_and_groundobjs(this_T& self, visitor_T& visitor) {
 	sint64 costs=0;
-	for(  uint8 i=0;  i<get_top();  i++  ) {
-		obj_t *obj = obj_bei(i);
+	for(  uint8 i=0;  i<self.get_top();  i++  ) {
+		obj_t *obj = self.obj_bei(i);
 		switch(obj->get_typ()) {
 			case obj_t::baum: {
 				baum_t* const tree = (baum_t *)obj;
+				visitor.visit(tree);
 				costs -= welt->get_settings().cst_remove_tree;
 				break;
 			}
 			case obj_t::groundobj: {
-				groundobj_t* go = (groundobj_t *) obj;
-				costs += go->get_desc()->get_value();
+				groundobj_t* gr_obj = (groundobj_t *) obj;
+				costs += gr_obj->get_desc()->get_value();
+				visitor.visit(gr_obj);
 				break;
 			}
 			default: break;
@@ -1906,27 +1916,12 @@ sint64 grund_t::get_tree_remove_costs() const {
 	return costs;
 }
 
+sint64 grund_t::get_tree_remove_costs() const {
+	return visit_trees_and_groundobjs(*this, tree_groundobj_noop_visitor);
+}
+
 sint64 grund_t::remove_trees() {
-	sint64 costs=0;
-	for(  uint8 i=0;  i<get_top();  i++  ) {
-		obj_t *obj = obj_bei(i);
-		switch(obj->get_typ()) {
-			case obj_t::baum: {
-				baum_t* const tree = (baum_t *)obj;
-				delete tree;
-				costs -= welt->get_settings().cst_remove_tree;
-				break;
-			}
-			case obj_t::groundobj: {
-				groundobj_t* gr_obj = (groundobj_t *) obj;
-				costs += gr_obj->get_desc()->get_value();
-				delete gr_obj;
-				break;
-			}
-			default: break;
-		}
-	}
-	return costs;
+	return visit_trees_and_groundobjs(*this, tree_groundobj_remove_visitor);
 }
 
 

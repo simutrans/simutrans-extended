@@ -726,7 +726,21 @@ public:
 	* Interface zur Bauen der Wege
 	* =============================
 	*/
+private:
+	/**
+	 *
+	 * @tparam this_T Either grund_t or const grund_t
+	 * @tparam visitor_T must offer
+	 * 		`static void action(baum_t*)` and `static void action(groundobj_t*)`, if this_T is grund_t or
+	 * 		`static void action(const baum_t*)` and `static void action(const groundobj_t*)`, if this_T is gconst grund_t
+	 * @param self
+	 * @param visitor applied to all trees and groundobjs on this ground.
+	 * @return costs of removal
+	 */
+	template<typename this_T, typename visitor_T>
+	static sint64 visit_trees_and_groundobjs(this_T& self, visitor_T& visitor);
 
+public:
 	/**
 	 * calculate the removal costs of trees and groundobjs on this tile
 	 * @return removal costs
