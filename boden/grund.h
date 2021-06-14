@@ -760,7 +760,7 @@ public:
 	 * @param ribi    die neuen ribis
 	 * @param player  Player building the way
 	 */
-	sint64 neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player, koord3d_vector_t *route = NULL);
+	sint64 neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player);
 
 	/**
 	 * Bauhilfsfunktion - die ribis eines vorhandenen weges werden erweitert

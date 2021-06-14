@@ -12242,7 +12242,7 @@ sint64 karte_t::get_land_value (koord3d k)
 	return cost;
 }
 
-double karte_t::get_forge_cost(const waytype_t &waytype, const koord3d &position) const {
+sint64 karte_t::get_forge_cost(const waytype_t &waytype, const koord3d &position) const {
 	sint64 forge_cost = get_settings().get_forge_cost(waytype);
 	const grund_t* gr_this_tile = lookup_kartenboden(position.get_2d());
 	if (gr_this_tile && gr_this_tile->get_weg(waytype))

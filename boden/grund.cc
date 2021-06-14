@@ -1946,73 +1946,25 @@ player_t* grund_t::get_owner() const {
 }
 
 
-sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player, koord3d_vector_t *route)
+sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player)
 {
 	sint64 cost=0;
 
 	// not already there?
 	const weg_t * alter_weg = get_weg(weg->get_waytype());
-	if(alter_weg==NULL) {
+	if(alter_weg==nullptr) {
 		// ok, we are unique
 		// Calculate the forge cost
-		sint64 forge_cost = welt->get_settings().get_forge_cost(weg->get_waytype());
-
-		if(route != NULL)
-		{
-			// No parallel way discounting for bridges and tunnels.
-			for(int n = 0; n < 8; n ++)
-			{
-				const koord kn = pos.get_2d().neighbours[n] + pos.get_2d();
-				if(!welt->is_within_grid_limits(kn))
-				{
-					continue;
-				}
-				const koord3d kn3d(kn, welt->lookup_hgt(kn));
-				grund_t* to = welt->lookup(kn3d);
-				const weg_t* connecting_way = to ? to->get_weg(weg->get_waytype()) : NULL;
-				const ribi_t::ribi connecting_ribi = connecting_way ? connecting_way->get_ribi() : ribi_t::all;
-				if(route->is_contained(kn3d) || (ribi_t::is_single(ribi) && ribi_t::is_single(connecting_ribi)))
-				{
-					continue;
-				}
-				const grund_t* gr_neighbour = welt->lookup_kartenboden(kn);
-				if(gr_neighbour && gr_neighbour->get_weg(weg->get_desc()->get_waytype()))
-				{
-					// This is a parallel way of the same type - reduce the forge cost.
-					forge_cost *= welt->get_settings().get_parallel_ways_forge_cost_percentage(weg->get_waytype());
-					forge_cost /= 100ll;
-					break;
-				}
-			}
-		}
-		cost -= forge_cost;
+		cost -= welt->get_forge_cost(weg->get_waytype(), pos);;
 
 
 		if((flags&has_way1)==0) {
 			// new first way here, clear trees
 			cost -= remove_trees();
 
-			if(is_for_sale()){
+			if(is_for_sale()) {
 				cost += welt->get_land_value(pos);
 			}
-
-			// Add the cost of buying the land, if appropriate.
-			if(obj_bei(0) == NULL || obj_bei(0)->get_owner() != player)
-			{
-				// Only add the cost of the land if the player does not
-				// already own this land.
-
-				// get_land_value returns a *negative* value.
-				if (!weg->is_public_right_of_way())
-				{
-					cost += welt->get_land_value(pos);
-				}
-			}
-
-			// add
-			weg->set_ribi(ribi);
-			weg->set_pos(pos);
-			objlist.add( weg );
 			flags |= has_way1;
 		}
 		else {
@@ -2023,20 +1975,15 @@ sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player,
 				return 0;
 			}
 			// add the way
-			objlist.add( weg );
-			weg->set_ribi(ribi);
-			weg->set_pos(pos);
 			flags |= has_way2;
 			if(ist_uebergang()) {
 				// no tram => crossing needed!
 				waytype_t w2 =  other->get_waytype();
 				const crossing_desc_t *cr_desc = crossing_logic_t::get_crossing( weg->get_waytype(), w2, weg->get_max_speed(), other->get_max_speed(), welt->get_timeline_year_month() );
-				if(cr_desc == nullptr)
-				{
+				if(cr_desc == nullptr) {
 					dbg->error("crossing_t::crossing_t()", "requested for waytypes %i and %i but nothing defined!", weg->get_waytype(), w2);
 				}
-				else
-				{
+				else {
 					crossing_t* cr = new crossing_t(obj_bei(0)->get_owner(), pos, cr_desc, ribi_t::is_straight_ns(get_weg(cr_desc->get_waytype(1))->get_ribi_unmasked()));
 					objlist.add(cr);
 					cr->finish_rd();
@@ -2044,31 +1991,31 @@ sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player,
 			}
 		}
 
-		// Add a pavement to the new road if the old road also had a pavement.
-		if (alter_weg && alter_weg->hat_gehweg()) {
-			strasse_t *str = static_cast<strasse_t *>(weg);
-			str->set_gehweg(true);
-			weg->set_public_right_of_way();
-		}
+		//add the way
+		weg->set_ribi(ribi);
+		weg->set_pos(pos);
+		objlist.add( weg );
 
-		// Add a pavement to roads adopted by the city.  This avoids the
+		// There had been code using this condition here. I am quite sure alter_weg is always nullptr here.
+		// If the program should ever crash here, I was either wrong or the code was changed afterwards
+		assert(!alter_weg);
+
+		// Add a pavement to roads adopted by the city and roads that
+		// This avoids the
 		// "I deleted the road and replaced it, so now there's no pavement" phenomenon.
-		bool city_adopts_this = weg->should_city_adopt_this(player);
-		if (city_adopts_this)
-		{
+		if (weg->should_city_adopt_this(player)) {
 			// Add road and set speed limit.
 			strasse_t *str = static_cast<strasse_t *>(weg);
 			str->set_gehweg(true);
 			weg->set_public_right_of_way();
 		}
-		else if(player && !is_water() && !city_adopts_this)
-		{
+		else if(player && !is_water()) {
 			// Set the owner
 			weg->set_owner(player);
 			// Must call this here to ensure that the diagonal cost is
 			// set as appropriate.
 			// @author: jamespetts, Februrary 2010
-			weg->finish_rd();
+			weg->finish_rd(); // TODO: Missleading name. Will add the maintainance costs of that road.
 		}
 
 		// may result in a crossing, but the wegebauer will recalc all images anyway
