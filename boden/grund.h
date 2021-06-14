@@ -894,6 +894,9 @@ public:
 	void* operator new(size_t s);
 	void  operator delete(void* p, size_t s);
 
+	bool is_for_sale() const;
+
+	player_t* get_owner() const;
 };
 
 

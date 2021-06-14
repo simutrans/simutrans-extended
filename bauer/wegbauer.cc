@@ -2257,12 +2257,7 @@ sint64 way_builder_t::calc_costs() {
 
 			single_cost += welt->get_forge_cost(desc->get_waytype(), pos);
 
-			const obj_t* obj = gr->obj_bei(0);
-			if(!upgrading && (obj == nullptr || obj->get_owner() == nullptr)) {
-				// Only add the cost of the land if this land is not already owned
-				// by either this player or some other player.
-
-				// get_land_value returns a *negative* value.
+			if(gr->is_for_sale()) {
 				single_cost -= welt->get_land_value(gr->get_pos());
 			}
 			costs += gr->get_tree_remove_costs();

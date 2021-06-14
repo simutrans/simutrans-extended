@@ -1924,6 +1924,27 @@ sint64 grund_t::remove_trees() {
 	return visit_trees_and_groundobjs(*this, tree_groundobj_remove_visitor);
 }
 
+// Land is for sale if all stationary objects on ground are
+// - not owned by another player (including public player)
+// - not public right of way
+bool grund_t::is_for_sale() const {
+	const obj_t* const obj0 = obj_bei(0);
+	const weg_t* const way1 = get_weg_nr(1);
+	return (!obj0 || obj0->is_moving() || (obj0->get_owner()==nullptr && (obj0->get_typ() != obj_t::way || !((const weg_t*)obj0)->is_public_right_of_way()))) &&	// First obj, if exists, is a stationary object not owned by a player nor prow
+		   (!way1 || !way1->is_public_right_of_way());	// Second object, if exists is
+}
+
+//For now, ownership is defined as the owner of the first object, if that object is stationary except if that object is public right of way, then nobody owns that land.
+//The usual waytype order will determine ownership, not the order of construction.
+//TODO: Store ownership, so the player who first claimed a land will own it until he sells his last object on that tile.
+player_t* grund_t::get_owner() const {
+	const obj_t* const obj = obj_bei(0);
+	if(obj && !obj->is_moving() && (obj->get_typ() != obj_t::way || !((const weg_t*)obj)->is_public_right_of_way())){
+		return obj->get_owner();
+	}
+	return nullptr;
+}
+
 
 sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player, koord3d_vector_t *route)
 {
@@ -1966,9 +1987,14 @@ sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player,
 		}
 		cost -= forge_cost;
 
+
 		if((flags&has_way1)==0) {
 			// new first way here, clear trees
 			cost -= remove_trees();
+
+			if(is_for_sale()){
+				cost += welt->get_land_value(pos);
+			}
 
 			// Add the cost of buying the land, if appropriate.
 			if(obj_bei(0) == NULL || obj_bei(0)->get_owner() != player)
