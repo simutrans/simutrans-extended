@@ -2025,16 +2025,14 @@ sint64 grund_t::neuen_weg_bauen(weg_t *weg, ribi_t::ribi ribi, player_t *player)
 }
 
 
-sint32 grund_t::weg_entfernen(waytype_t wegtyp, bool ribi_rem)
-{
+sint32 grund_t::weg_entfernen(waytype_t wegtyp, bool ribi_rem) {
 	weg_t *weg = get_weg(wegtyp);
-	if(weg!=NULL) {
+	if(weg!=nullptr) {
 
 		weg->mark_image_dirty(get_image(), 0);
 
 #ifdef MULTI_THREAD_CONVOYS
-		if (env_t::networkmode)
-		{
+		if (env_t::networkmode) {
 			// In network mode, we cannot have anything that alters a way running concurrently with
 			// convoy path-finding because whether the convoy path-finder is called
 			// on this tile of way before or after this function is indeterminate.
@@ -2058,7 +2056,7 @@ sint32 grund_t::weg_entfernen(waytype_t wegtyp, bool ribi_rem)
 		}
 
 		sint32 costs = (weg->get_desc()->get_value() / 2); // Costs for removal are half construction costs.
-		weg->cleanup( NULL );
+		weg->cleanup( nullptr );
 		delete weg;
 
 		// delete the second way ...
