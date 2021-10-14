@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.CI_token }}
       - name: Code Check
         shell: bash
         run: ./cleanup_code.sh

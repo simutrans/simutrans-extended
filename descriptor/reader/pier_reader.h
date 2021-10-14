@@ -3,8 +3,9 @@
  * (see LICENSE.txt)
  */
 
-#ifndef PIER_READER_T_H
-#define PIER_READER_T_H
+#ifndef DESCRIPTOR_READER_PIER_READER_H
+#define DESCRIPTOR_READER_PIER_READER_H
+
 
 #include "obj_reader.h"
 
