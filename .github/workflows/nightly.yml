@@ -1,9 +1,7 @@
 name: nightly
 on:
-  push:
-    branches: '*'
-#  schedule:
-#    - cron: '0 2 * * *'
+  schedule:
+    - cron: '0 2 * * *'
 jobs:
   nightly:
     runs-on: ubuntu-latest    
