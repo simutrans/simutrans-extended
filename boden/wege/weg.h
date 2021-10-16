@@ -423,7 +423,7 @@ public:
 	const char *is_deletable(const player_t *player) OVERRIDE;
 
 	bool is_low_clearence(const player_t* player){
-		return (!this->is_deletable(player) && (this->desc->is_low_clearence()));
+		return (!this->is_deletable(player) && !this->is_public_right_of_way() && (this->desc->is_low_clearence()));
 	}
 
 	waytype_t get_waytype() const OVERRIDE { return wtyp; }

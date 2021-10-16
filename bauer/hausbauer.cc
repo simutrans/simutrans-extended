@@ -18,7 +18,7 @@
 #include "../obj/leitung2.h"
 #include "../obj/tunnel.h"
 #include "../obj/zeiger.h"
-
+#include "../obj/pier.h"
 #include "../gui/minimap.h"
 #include "../simworld.h"
 #include "../gui/tool_selector.h"
@@ -487,42 +487,49 @@ void hausbauer_t::remove( player_t *player, const gebaeude_t *gb, bool map_gener
 					}
 					// and maybe restore land below
 					if(gr->get_typ()==grund_t::fundament) {
-						const koord newk = k+pos.get_2d();
-						sint8 new_hgt;
-						const uint8 new_slope = welt->recalc_natural_slope(newk,new_hgt);
-						// test for ground at new height
-						const grund_t *gr2 = welt->lookup(koord3d(newk,new_hgt));
-						if(  (gr2==NULL  ||  gr2==gr) &&  new_slope!=slope_t::flat  ) {
-							// and for ground above new sloped tile
-							gr2 = welt->lookup(koord3d(newk, new_hgt+1));
-						}
-						bool ground_recalc = true;
-						if(  gr2  &&  gr2!=gr  ) {
-							// there is another ground below or above
-							// => do not change height, keep foundation
-							welt->access(newk)->kartenboden_setzen( new boden_t( gr->get_pos(), slope_t::flat ) );
-							ground_recalc = false;
-						}
-						else if(  new_hgt <= welt->get_water_hgt(newk)  &&  new_slope == slope_t::flat  ) {
-							wasser_t* sea = new wasser_t( koord3d( newk, new_hgt) );
-							welt->access(newk)->kartenboden_setzen( sea );
-							welt->calc_climate( newk, true );
-							sea->recalc_water_neighbours();
-						}
-						else {
-							if(  gr->get_grund_hang() == new_slope  ) {
+						if(gr->find<pier_t>()){
+							//land supporting weight of pier, convert it to normal land
+							koord3d gr_pos=gr->get_pos();
+							slope_t::type gr_slope=gr->get_grund_hang();
+							welt->access(gr_pos.get_2d())->kartenboden_setzen(new boden_t(gr_pos,gr_slope));
+						}else{
+							const koord newk = k+pos.get_2d();
+							sint8 new_hgt;
+							const uint8 new_slope = welt->recalc_natural_slope(newk,new_hgt);
+							// test for ground at new height
+							const grund_t *gr2 = welt->lookup(koord3d(newk,new_hgt));
+							if(  (gr2==NULL  ||  gr2==gr) &&  new_slope!=slope_t::flat  ) {
+								// and for ground above new sloped tile
+								gr2 = welt->lookup(koord3d(newk, new_hgt+1));
+							}
+							bool ground_recalc = true;
+							if(  gr2  &&  gr2!=gr  ) {
+								// there is another ground below or above
+								// => do not change height, keep foundation
+								welt->access(newk)->kartenboden_setzen( new boden_t( gr->get_pos(), slope_t::flat ) );
 								ground_recalc = false;
 							}
-							welt->access(newk)->kartenboden_setzen( new boden_t( koord3d( newk, new_hgt ), new_slope ) );
-							// climate is stored in planquadrat, and hence automatically preserved
-						}
-						// there might be walls from foundations left => thus some tiles may need to be redrawn
-						if(ground_recalc) {
-							if(grund_t *gr = welt->lookup_kartenboden(newk+koord::east)) {
-								gr->calc_image();
+							else if(  new_hgt <= welt->get_water_hgt(newk)  &&  new_slope == slope_t::flat  ) {
+								wasser_t* sea = new wasser_t( koord3d( newk, new_hgt) );
+								welt->access(newk)->kartenboden_setzen( sea );
+								welt->calc_climate( newk, true );
+								sea->recalc_water_neighbours();
 							}
-							if(grund_t *gr = welt->lookup_kartenboden(newk+koord::south)) {
-								gr->calc_image();
+							else {
+								if(  gr->get_grund_hang() == new_slope  ) {
+									ground_recalc = false;
+								}
+								welt->access(newk)->kartenboden_setzen( new boden_t( koord3d( newk, new_hgt ), new_slope ) );
+								// climate is stored in planquadrat, and hence automatically preserved
+							}
+							// there might be walls from foundations left => thus some tiles may need to be redrawn
+							if(ground_recalc) {
+								if(grund_t *gr = welt->lookup_kartenboden(newk+koord::east)) {
+									gr->calc_image();
+								}
+								if(grund_t *gr = welt->lookup_kartenboden(newk+koord::south)) {
+									gr->calc_image();
+								}
 							}
 						}
 					}

@@ -59,6 +59,7 @@ private:
         case 2: return rot&1;
         case 1: return 0;
         }
+        return 0;
     }
 
 public:

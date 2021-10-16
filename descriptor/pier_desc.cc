@@ -18,7 +18,7 @@ slope_t::type pier_desc_t::get_above_slope(uint8 rotation) const{
 image_id pier_desc_t::get_background(slope_t::type slope, uint8 rotation, uint8 season) const{
 	const image_t *image = NULL;
 	rotation=img_rotation(rotation);
-	if(season && number_of_seasons == 1) {
+	if(season && number_of_seasons == 2) {
 		image = get_child<image_list_t>(5)->get_image(slope + 81 * rotation);
 	}
 	if(image == NULL) {
@@ -30,7 +30,7 @@ image_id pier_desc_t::get_background(slope_t::type slope, uint8 rotation, uint8 
 image_id pier_desc_t::get_foreground(slope_t::type slope, uint8 rotation, uint8 season) const{
 	const image_t *image = NULL;
 	rotation=img_rotation(rotation);
-	if(season && number_of_seasons == 1) {
+	if(season && number_of_seasons == 2) {
 		image = get_child<image_list_t>(6)->get_image(slope + 81 * rotation);
 	}
 	if(image == NULL) {

@@ -34,14 +34,13 @@ pier_t::pier_t(koord3d pos, player_t *player, const pier_desc_t *desc, uint8 rot
 
 void pier_t::calc_image(){
 	grund_t *gr=welt->lookup(get_pos());
+	uint8 snow=get_pos().z >= welt->get_snowline()  ||  welt->get_climate( get_pos().get_2d() ) == arctic_climate ? 1 : 0;
 	if(gr && gr->get_typ()!=grund_t::pierdeck){
-		//ignoring snow for now TODO
-		back_image=desc->get_background(gr->get_grund_hang(),rotation,0);
-		front_image=desc->get_foreground(gr->get_grund_hang(), rotation, 0);
+		back_image=desc->get_background(gr->get_grund_hang(),rotation,snow );
+		front_image=desc->get_foreground(gr->get_grund_hang(), rotation, snow);
 	}else{ //assuming flat
-		//ignoring snow for now TODO
-		back_image=desc->get_background(0,rotation,0);
-		front_image=desc->get_foreground(0,rotation, 0);
+		back_image=desc->get_background(0,rotation,snow);
+		front_image=desc->get_foreground(0,rotation, snow);
 	}
 	set_flag(obj_t::dirty);
 }
@@ -97,6 +96,14 @@ void pier_t::rotate90(){
 const char *pier_t::is_deletable(const player_t *player){
 	if (get_player_nr()==welt->get_public_player()->get_player_nr()) {
 		return NULL;
+	}
+	if(grund_t *gr = welt->lookup(get_pos())){
+		if(gr->get_weg_nr(1) && !gr->get_weg_nr(1)->is_deletable(player)){
+			return NULL;
+		}
+		if(gr->get_weg_nr(0) && !gr->get_weg_nr(0)->is_deletable(player)){
+			return NULL;
+		}
 	}
 	return obj_t::is_deletable(player);
 }

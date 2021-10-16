@@ -16,6 +16,7 @@
 #include "simconvoi.h"
 #include "gui/simwin.h"
 #include "display/viewport.h"
+#include "display/simgraph.h"
 
 #include "bauer/fabrikbauer.h"
 #include "bauer/vehikelbauer.h"
@@ -450,7 +451,22 @@ bool tool_remover_t::tool_remover_intern(player_t *player, koord3d pos, sint8 ty
 DBG_MESSAGE("tool_remover_intern()","at (%s)", pos.get_str());
 	// check if there is something to remove from here ...
 	grund_t *gr = welt->lookup(pos);
-	if (!gr  ||  gr->get_top()==0) {
+	if (!gr) {
+		msg = "";
+		return false;
+	}
+
+	if (gr->get_top()==0) {
+		if(gr->get_typ()==grund_t::pierdeck){
+			gr=welt->lookup(pos+koord3d(0,0,-1));
+			if(!gr){
+				gr=welt->lookup(pos+koord3d(0,0,-2));
+			}
+			if(gr && gr->find<pier_t>()){
+				msg = pier_builder_t::remove(player,gr->get_pos());
+				return msg==NULL;
+			}
+		}
 		msg = "";
 		return false;
 	}
@@ -638,10 +654,13 @@ DBG_MESSAGE("tool_remover()",  "removing bridge from %d,%d,%d",gr->get_pos().x, 
 		return msg == NULL;
 	}
 
-	//delete pier
+	//try to delete pier, continue if unsucessfull
+	const char *pier_msg;
 	if(gr->find<pier_t>()){
-		msg = pier_builder_t::remove(player,pos);
-		return msg==NULL;
+		pier_msg = pier_builder_t::remove(player,pos);
+		if(pier_msg==NULL){
+			return true;
+		}
 	}
 
 	// beginning/end of tunnel
@@ -785,7 +804,30 @@ DBG_MESSAGE("tool_remover()",  "took out powerline");
 	uint8 num_obj = gr->obj_count();
 	if(num_obj>0) {
 		msg = gr->kann_alle_obj_entfernen(player);
-		return_ok = (msg==NULL  &&  !(gr->get_typ()==grund_t::brueckenboden  ||  gr->get_typ()==grund_t::tunnelboden)  &&  gr->obj_loesche_alle(player));
+		if(return_ok = ((msg==NULL  &&  !(gr->get_typ()==grund_t::brueckenboden  ||  gr->get_typ()==grund_t::tunnelboden)))){
+			if(gr->find<pier_t>()){
+				//there is a pier here, try to remove everything else
+				return_ok=false;
+				uint8 objcnt=0;
+				while(objcnt<gr->get_top()){
+					const obj_t* obj = gr->obj_bei(objcnt);
+					if(obj->get_typ()==obj_t::pier || obj->get_typ()==obj_t::way){
+						objcnt++;
+					}else if(gr->obj_remove(obj)){
+						return_ok=true;
+					}else{
+						objcnt++;
+					}
+				}
+				num_obj=gr->obj_count();
+				if(!return_ok && !gr->get_weg_nr(0)){
+					msg=pier_msg;
+					return false;
+				}
+			}else{
+				return_ok = gr->obj_loesche_alle(player);
+			}
+		}
 		DBG_MESSAGE("tool_remover()",  "removing everything from %d,%d,%d",gr->get_pos().x, gr->get_pos().y, gr->get_pos().z);
 	}
 
@@ -942,6 +984,14 @@ char const* tool_remover_t::check_diversionary_route(koord3d pos, weg_t* w, play
 const char *tool_remover_t::work( player_t *player, koord3d pos )
 {
 	DBG_MESSAGE("tool_remover()","at %d,%d", pos.x, pos.y);
+
+	if(is_ctrl_pressed() && welt->lookup(pos) && welt->lookup(pos)->get_typ()==grund_t::pierdeck){
+		bool sucess=false;
+		for(sint8 i=pos.z-1; i >= welt->lookup_hgt(pos.get_2d()); i--){
+			while(!pier_builder_t::remove(player,koord3d(pos.get_2d(),i))){sucess=true;}
+		}
+		return sucess ? NULL : "Could not remove any piers";
+	}
 
 	obj_t::typ type = obj_t::undefined;
 
@@ -8906,20 +8956,24 @@ bool tool_quit_t::init( player_t * )
 
 bool tool_screenshot_t::init( player_t * )
 {
-	if(  is_ctrl_pressed()  ) {
-		if(  const gui_frame_t * topwin = win_get_top()  ) {
-			const scr_coord k = win_get_pos(topwin);
-			const scr_size size = topwin->get_windowsize();
-			display_snapshot( k.x, k.y, size.w, size.h );
-		}
-		else {
-			display_snapshot( 0, 0, display_get_width(), display_get_height() );
-		}
+	bool ok;
+	const scr_rect screen_area = scr_rect(0, 0, display_get_width(), display_get_height());
+	const gui_frame_t *topwin = win_get_top();
+
+	if(  is_ctrl_pressed()  &&  topwin != NULL  ) {
+		ok = display_snapshot( scr_rect(win_get_pos(topwin), topwin->get_windowsize()) );
 	}
 	else {
-		display_snapshot( 0, 0, display_get_width(), display_get_height() );
+		ok = display_snapshot( screen_area );
 	}
-	create_win( new news_img("Screenshot\ngespeichert.\n"), w_time_delete, magic_none);
+
+	if (ok) {
+		create_win( new news_img("Screenshot\ngespeichert.\n"), w_time_delete, magic_none);
+	}
+	else {
+		create_win( new news_img("Could not\ncreate screenshot!\n"), w_time_delete, magic_none);
+	}
+
 	return false;
 }
 

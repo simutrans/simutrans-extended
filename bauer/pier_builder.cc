@@ -191,6 +191,10 @@ const char *pier_builder_t::build(player_t *player, koord3d pos, const pier_desc
         deck->calc_image();
     }
 
+    //remove trees
+    if(gr->ist_natur()) {
+        player_t::book_construction_costs(player, -gr->remove_trees(), gr->get_pos().get_2d());
+    }
 
     //create pier
     pier_t *p = new pier_t(pos,player,desc,rotation);
@@ -215,16 +219,24 @@ const char *pier_builder_t::remove(player_t *player, koord3d pos){
         }
     }
 
+    if(pier_cnt==0){
+        return "No piers here";
+    }
+
     if(pier_cnt==1){
         koord3d gpos=lookup_deck_pos(gr,pos);
         grund_t *bd = welt->lookup(gpos);
-        if(bd->obj_count() || bd->get_weg_nr(0)){
-            return "Cannot remove sole load bearing pier";
+        if(bd){
+            if(bd->obj_count() || bd->get_weg_nr(0)){
+                return "Cannot remove sole load bearing pier";
+            }
         }
         gr->obj_remove(p);
         delete p;
-        welt->access(gpos.get_2d())->boden_entfernen(bd);
-        delete bd;
+        if(bd){
+            welt->access(gpos.get_2d())->boden_entfernen(bd);
+            delete bd;
+        }
         return NULL;
     }
 
@@ -254,7 +266,7 @@ const char *pier_builder_t::remove(player_t *player, koord3d pos){
                     }
                     continue;
                 }
-                //TODO check that we are not supporting a way
+
                 gr->obj_remove(p);
                 delete p;
 
