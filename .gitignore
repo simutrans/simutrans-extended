@@ -35,7 +35,8 @@ ipch
 /Debug
 /Debug-nettool
 /Release
-/build
+/build*
+/.ccls-cache
 /config.*
 /intermediates
 /makeobj/makeobj
