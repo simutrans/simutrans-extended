@@ -18,20 +18,20 @@ jobs:
           
 
 
-  sim-linux-sdl2mixer:
-    name: Linux (SDL2_mixer, freetype)
+  sim-linux-sdl2:
+    name: Linux (SDL2)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Get Dependencies
         shell: bash
-        run: sudo apt-get -y update && sudo apt-get install -y --no-install-recommends build-essential cmake clang++-10 zlib1g-dev libbz2-dev libsdl2-dev libsdl2-mixer-dev libfreetype6-dev
+        run: sudo apt-get -y update && sudo apt-get install -y --no-install-recommends build-essential cmake clang++-10 zlib1g-dev libbz2-dev libsdl2-dev libfreetype6-dev libfluidsynth-dev 
       - name: Configure
         run: |
           mkdir build
           cd build
-          CC=clang-10 CXX=clang++-10 cmake .. -DCMAKE_BUILD_TYPE=Release -DSIMUTRANS_BACKEND=mixer_sdl2 -DSIMUTRANS_USE_FREETYPE=ON
+          CC=clang-10 CXX=clang++-10 cmake .. -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: |
           cd build
@@ -83,7 +83,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          CC=gcc-10 CXX=g++-10 cmake .. -DCMAKE_BUILD_TYPE=Debug -DSIMUTRANS_BACKEND=sdl2 -DSIMUTRANS_MULTI_THREAD=OFF
+          CC=gcc-10 CXX=g++-10 cmake .. -DCMAKE_BUILD_TYPE=Debug -DSIMUTRANS_MULTI_THREAD=OFF
       - name: Build
         run: |
           cd build
@@ -153,11 +153,11 @@ jobs:
         uses: actions/checkout@v2
       - name: Get Dependencies
         run: |
-          brew install autoconf automake freetype libpng pkg-config sdl2
+          brew install cmake freetype libpng pkg-config sdl2 fluidsynth
       - name: Configure
         run: |
           mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DSIMUTRANS_BACKEND=sdl2
+          cmake .. -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: |
           cd build
@@ -372,19 +372,19 @@ jobs:
         uses: lukka/run-vcpkg@v4.1
         with:
           vcpkgDirectory: '${{ github.workspace }}/build/vcpkg'
-          vcpkgArguments: '--disable-metrics zlib bzip2'
+          vcpkgArguments: '--disable-metrics zlib bzip2 libpng'
           vcpkgGitCommitId: 6185aa76504a5025f36754324abf307cc776f3da
-          vcpkgTriplet: x64-windows
+          vcpkgTriplet: x64-windows-static
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Configure
         run: |
           cd ${{ github.workspace }}/build
-          cmake .. -DSIMUTRANS_BACKEND=gdi -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake .. -DSIMUTRANS_BACKEND=gdi -G "Visual Studio 16 2019" -A x64 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build
         run: |
           cd ${{ github.workspace }}/build
-          msbuild.exe Simutrans-Extended.sln /t:simutrans-extended /p:Configuration=Release
+          cmake --build . --target simutrans-extended --config Release
       - name: Upload Artifact (CI)
         uses: actions/upload-artifact@v2
         with:
@@ -392,8 +392,8 @@ jobs:
           path: build/simutrans/Release/simutrans-extended.exe
 
 
-  sim-windows-sdl2mixer:
-    name: Windows (MSVC, SDL2_mixer)
+  sim-windows-sdl2:
+    name: Windows (MSVC, SDL2)
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -404,19 +404,19 @@ jobs:
         uses: lukka/run-vcpkg@v4.1
         with:
           vcpkgDirectory: '${{ github.workspace }}/build/vcpkg'
-          vcpkgArguments: '--disable-metrics zlib bzip2 sdl2 sdl2-mixer'
+          vcpkgArguments: '--disable-metrics zlib bzip2 sdl2 libpng'
           vcpkgGitCommitId: 6185aa76504a5025f36754324abf307cc776f3da
-          vcpkgTriplet: x64-windows
+          vcpkgTriplet: x64-windows-static
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Configure
         run: |
           cd ${{ github.workspace }}/build
-          cmake .. -DSIMUTRANS_BACKEND=mixer_sdl2 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake .. -DSIMUTRANS_BACKEND=sdl2 -G "Visual Studio 16 2019" -A x64 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build
         run: |
           cd ${{ github.workspace }}/build
-          msbuild.exe Simutrans-Extended.sln /t:simutrans-extended /p:Configuration=Release
+          cmake --build . --target simutrans-extended --config Release
       - name: Upload Artifact (CI)
         uses: actions/upload-artifact@v2
         with:
@@ -436,19 +436,19 @@ jobs:
         uses: lukka/run-vcpkg@v4.1
         with:
           vcpkgDirectory: '${{ github.workspace }}/build/vcpkg'
-          vcpkgArguments: '--disable-metrics zlib bzip2 miniupnpc zstd'
+          vcpkgArguments: '--disable-metrics zlib bzip2 miniupnpc zstd libpng'
           vcpkgGitCommitId: 6185aa76504a5025f36754324abf307cc776f3da
-          vcpkgTriplet: x64-windows
+          vcpkgTriplet: x64-windows-static
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Configure
         run: |
           cd ${{ github.workspace }}/build
-          cmake .. -DSIMUTRANS_BACKEND=none -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake .. -DSIMUTRANS_BACKEND=none -G "Visual Studio 16 2019" -A x64 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build
         run: |
           cd ${{ github.workspace }}/build
-          msbuild.exe Simutrans-Extended.sln /t:simutrans-extended /p:Configuration=Release
+          cmake --build . --target simutrans-extended --config Release
       - name: Upload Artifact (CI)
         uses: actions/upload-artifact@v2
         with:
@@ -470,17 +470,17 @@ jobs:
           vcpkgDirectory: '${{ github.workspace }}/build/vcpkg'
           vcpkgArguments: '--disable-metrics zlib bzip2 libpng'
           vcpkgGitCommitId: 6185aa76504a5025f36754324abf307cc776f3da
-          vcpkgTriplet: x64-windows
+          vcpkgTriplet: x64-windows-static
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Configure
         run: |
           cd ${{ github.workspace }}/build
-          cmake .. -DSIMUTRANS_BACKEND=none -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake .. -DSIMUTRANS_BACKEND=none -G "Visual Studio 16 2019" -A x64 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build
         run: |
           cd ${{ github.workspace }}/build
-          msbuild.exe Simutrans-Extended.sln /t:makeobj-extended /p:Configuration=Release
+          cmake --build . --target makeobj-extended --config Release
       - name: Upload Artifact (CI)
         uses: actions/upload-artifact@v2
         with:
@@ -500,19 +500,19 @@ jobs:
         uses: lukka/run-vcpkg@v4.1
         with:
           vcpkgDirectory: '${{ github.workspace }}/build/vcpkg'
-          vcpkgArguments: '--disable-metrics zlib bzip2'
+          vcpkgArguments: '--disable-metrics zlib bzip2 libpng'
           vcpkgGitCommitId: 6185aa76504a5025f36754324abf307cc776f3da
-          vcpkgTriplet: x64-windows
+          vcpkgTriplet: x64-windows-static
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Configure
         run: |
           cd ${{ github.workspace }}/build
-          cmake .. -DSIMUTRANS_BACKEND=none -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake .. -DSIMUTRANS_BACKEND=none -G "Visual Studio 16 2019" -A x64 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/build/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build
         run: |
           cd ${{ github.workspace }}/build
-          msbuild.exe Simutrans-Extended.sln /t:nettool-extended /p:Configuration=Release
+          cmake --build . --target nettool-extended --config Release
       - name: Upload Artifact (CI)
         uses: actions/upload-artifact@v2
         with:
