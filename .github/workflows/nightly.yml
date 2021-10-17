@@ -3,80 +3,140 @@ on:
   schedule:
     - cron: '0 2 * * *'
 jobs:
-  nightly:
-    runs-on: ubuntu-latest    
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_hash: ${{ steps.last_successful_commit.outputs.commit_hash }}
+      changed: ${{ env.changed }}
+
     steps:
-      - uses: actions/checkout@v2  
-      
-      - name: Get latest successful commit
-        uses: nrwl/last-successful-commit-action@v1        
+      - uses: actions/checkout@v2
+
+      - name: Get latest successful commit hash
+        uses: nrwl/last-successful-commit-action@v1
         id: last_successful_commit
         with:
           branch: 'master'
           workflow_id: 'ci.yml'
           github_token: ${{ secrets.CI_token }}
-      
+
+
+      - run: echo "nightly_hash=$(git rev-parse Nightly)"
+      - run: echo "changed=${{ steps.last_successful_commit.outputs.commit_hash != env.nightly_hash }}"
+
       - name: Checkout
+        if: env.changed
         uses: actions/checkout@v2
         with:
-          ref: ${{ steps.last_successful_commit.outputs.commit_hash }}    
-      
+          ref: ${{ steps.last_successful_commit.outputs.commit_hash }}
+
       - name: Set nightly tag to current commit
+        if: env.changed
         uses: richardsimko/update-tag@v1
         with:
           tag_name: Nightly
         env:
           GITHUB_TOKEN: ${{ secrets.CI_token }}
-          
+
       - name: Get artifacts
+        if: env.changed
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{secrets.CI_token}}
           workflow: ci.yml
           commit: ${{ steps.last_successful_commit.outputs.commit_hash }}
-          
-      - name: Prepare Linux deployment
-        run: |
-          mkdir ./deploy
-          mkdir ./deploy/linux
-          mv ./sim-linux-sdl2mixer-nightly/simutrans-extended ./deploy/linux/simutrans-extended
-          mv ./sim-linux-posix-nightly/simutrans-extended ./deploy/linux/simutrans-extended-server
-          mv ./makeobj-linux-nightly/makeobj-extended ./deploy/linux/makeobj-extended
-          mv ./nettool-linux-nightly/nettool-extended ./deploy/linux/nettool-extended
-      - uses: papeloto/action-zip@v1
-        with:
-          files: ./deploy/linux/
-          dest: ./deploy/linux.zip
+          path: "./artifacts"
 
-      - name: Prepare macOS deployment
-        run: |
-          mkdir ./deploy/macos
-          mv ./sim-mac-sdl2-nightly/simutrans-extended ./deploy/macos/simutrans-extended
-          mv ./sim-mac-headless-nightly/simutrans-extended ./deploy/macos/simutrans-extended-server
-          mv ./makeobj-mac-nightly/makeobj-extended ./deploy/macos/makeobj-extended
-          mv ./nettool-mac-nightly/nettool-extended ./deploy/macos/nettool-extended
-      - uses: papeloto/action-zip@v1
+      - name: Share files with follow-up jobs
+        if: env.changed
+        uses: actions/cache@v2
         with:
-          files: ./deploy/macos/
-          dest: ./deploy/macos.zip
-          
-      - name: Prepare Windows deployment
-        run: |
-          mkdir ./deploy/windows
-          mv ./sim-mingw-sdl2-nightly/simutrans-extended.exe ./deploy/windows/simutrans-extended.exe
-          mv ./sim-mingw-posix-nightly/simutrans-extended.exe ./deploy/windows/simutrans-extended-server.exe
-          mv ./makeobj-mingw-nightly/makeobj-extended.exe ./deploy/windows/makeobj-extended.exe
-          mv ./nettool-mingw-nightly/nettool-extended.exe ./deploy/windows/nettool-extended.exe
-      - uses: papeloto/action-zip@v1
+          path: |
+            ./artifacts
+            ./simutrans
+          key: deploy-${{ steps.last_successful_commit.outputs.commit_hash }}
+
+
+  deploy-bin:
+    runs-on: ubuntu-latest
+    if: jobs.setup.outputs.changed
+    needs: setup
+    strategy:
+      matrix:
+        include:
+        - os: linux
+          buildtype: linux
+          backend: sdl2
+        - os: macos
+          buildtype: mac
+          backend: sdl2
+        - os: windows
+          buildtype: mingw
+          backend: sdl2
+          suffix: .exe
+
+    steps:
+      - name: Load files from setup
+        uses: actions/cache@v2
         with:
-          files: ./deploy/windows/
-          dest: ./deploy/windows.zip
-          
+          path: |
+            ./artifacts
+          key: deploy-${{ steps.last_successful_commit.outputs.commit_hash }}
+
+      - name: Prepare Deployment
+        run: |
+          mkdir ./${{matrix.os}}
+          cp ./artifacts/sim-${{matrix.buildtype}}-${{matrix.backend}}-nightly/simutrans-extended ./${{matrix.os}}/simutrans-extended${{matrix.suffix}}
+          cp ./artifacts/sim-${{matrix.buildtype}}-posix-nightly/simutrans-extended ./${{matrix.os}}/simutrans-extended-server${{matrix.suffix}}
+          cp ./artifacts/makeobj-${{matrix.buildtype}}-nightly/makeobj-extended ./${{matrix.os}}/makeobj-extended${{matrix.suffix}}
+          cp ./artifacts/nettool-${{matrix.buildtype}}-nightly/nettool-extended ./${{matrix.os}}/nettool-extended${{matrix.suffix}}
+
+      - name: zip
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./${{matrix.os}}/
+          dest: ./${{matrix.os}}.zip
+
       - name: Deploy
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.CI_token }}
-          file: ./deploy/*
+          file: ./${{matrix.os}}.zip
+          tag: Nightly
+          overwrite: true
+          file_glob: true
+
+  deploy-package:
+    runs-on: ubuntu-latest
+    if: jobs.setup.outputs.changed
+    needs: setup
+    steps:
+      - name: Load files from setup
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./artifacts
+            ./simutrans
+          key: deploy-${{ steps.last_successful_commit.outputs.commit_hash }}
+
+      - name: Prepare Deployment
+        run: |
+          cp ./artifacts/sim-linux-sdl2-nightly/simutrans-extended ./simutrans/simutrans-extended
+          cp ./artifacts/sim-mac-sdl2-nightly/simutrans-extended ./simutrans/simutrans-extended-macos
+          cp ./artifacts/sim-mac-sdl2-nightly/simutrans-extended.exe ./simutrans/simutrans-extended.exe
+
+
+      - name: zip
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./simutrans/
+          dest: ./simutrans-extended.zip
+
+      - name: Deploy
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.CI_token }}
+          file: ./simutrans-extended.zip
           tag: Nightly
           overwrite: true
           file_glob: true
