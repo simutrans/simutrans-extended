@@ -402,6 +402,8 @@ public:
 	uint32 get_max_axle_load() const { return max_axle_load; }
 	uint32 get_bridge_weight_limit() const { return bridge_weight_limit; }
 
+	uint32 get_deckmask() const {return desc->get_deckmask();}
+
 	/**
 	* Sets a new description. Replaces old with maximum speed
 	* worth of description and updates the maintenance cost.

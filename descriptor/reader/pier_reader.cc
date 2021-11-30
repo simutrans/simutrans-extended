@@ -53,6 +53,12 @@ obj_desc_t * pier_reader_t::read_node(FILE *fp, obj_node_info_t &node){
     desc->base_mask = decode_uint32(p);
     desc->support_mask = decode_uint32(p);
     desc->sub_obj_mask = decode_uint32(p);
+    if(desc->sub_obj_mask==0){
+        desc->sub_obj_mask=0xFFFFFFFF;
+    }else if(desc->sub_obj_mask==0xFFFFFFFF){
+        desc->sub_obj_mask=0;
+    }
+
     desc->deck_obj_mask = decode_uint32(p);
     desc->auto_group = decode_uint8(p);
     desc->auto_height = decode_uint8(p);
@@ -67,7 +73,9 @@ obj_desc_t * pier_reader_t::read_node(FILE *fp, obj_node_info_t &node){
     //extract flags from upper bits of drag_ribi
     desc->keep_dry = (drag_ribi & 0x10) != 0;
     desc->bottom_only = (drag_ribi & 0x20) != 0;
-    desc->drag_ribi = drag_ribi & 0xFF;
+    desc->drag_ribi = drag_ribi & 0x0F;
+    desc->above_way_supplement = (drag_ribi & 0x40) != 0;
+    desc->low_waydeck = (drag_ribi & 0x80) != 0;
 
     desc->topspeed = -1;
     desc->axle_load = -1;

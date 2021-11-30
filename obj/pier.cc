@@ -27,6 +27,7 @@ pier_t::pier_t(koord3d pos, player_t *player, const pier_desc_t *desc, uint8 rot
 {
 	this->desc = desc;
 	this->rotation = rot;
+	this->bad_load = false;
 	set_owner(player);
 	player_t::book_construction_costs( get_owner(), -desc->get_value(), get_pos().get_2d(), desc->get_waytype());
 	calc_image();
@@ -39,8 +40,13 @@ void pier_t::calc_image(){
 		back_image=desc->get_background(gr->get_grund_hang(),rotation,snow );
 		front_image=desc->get_foreground(gr->get_grund_hang(), rotation, snow);
 	}else{ //assuming flat
-		back_image=desc->get_background(0,rotation,snow);
-		front_image=desc->get_foreground(0,rotation, snow);
+		if(get_low_waydeck() && gr->get_weg_nr(0)){
+			back_image=desc->get_background(43,rotation, snow);
+			front_image=desc->get_foreground(43,rotation, snow);
+		}else{
+			back_image=desc->get_background(0,rotation,snow);
+			front_image=desc->get_foreground(0,rotation, snow);
+		}
 	}
 	set_flag(obj_t::dirty);
 }
@@ -69,13 +75,18 @@ void pier_t::rdwr(loadsave_t *file){
 	if(file->is_loading()){
 		desc = pier_builder_t::get_desc(s);
 
-		//TODO what if load fails
+		//cannot determine what to replace this with here, delay until rest of game loaded
+		bad_load=(desc==NULL);
 
 		free(const_cast<char *>(s));
 	}
 }
 
 void pier_t::finish_rd(){
+	if(desc==NULL){
+		desc = pier_builder_t::get_desc_bad_load(this->get_pos(),this->get_owner(),rotation);
+	}
+
 	player_t *player=get_owner();
 	player_t::add_maintenance( player,  desc->get_maintenance(), waytype_t::any_wt);
 }
@@ -119,16 +130,41 @@ const grund_t* pier_t::ground_below(const grund_t *gr){
 
 ribi_t::ribi pier_t::get_above_ribi_total(const grund_t *gr, bool gr_is_base){
 	ribi_t::ribi ret=ribi_t::none;
+	const grund_t *gr2;
 	if(!gr_is_base){
+		gr2=gr;
 		gr=ground_below(gr);
+	}else{
+		gr2=welt->lookup(pier_builder_t::lookup_deck_pos(gr));
 	}
+	//first check for low deck on upper pier
+	if(gr2){
+		for(uint8 i = 0; i < gr2->get_top(); i++){
+			obj_t *ob = gr2->obj_bei(i);
+			if(ob->get_typ()==obj_t::pier && ((pier_t*)ob)->get_low_waydeck()){
+				ret |= ((pier_t*)ob)->get_below_ribi();
+			}
+		}
+	}
+	if(ret){
+		return ret;
+	}
+	//check for normal deck
+	ribi_t::ribi supplement=ribi_t::none;
 	if(gr){
 		for(uint8 i = 0; i < gr->get_top(); i++){
 			obj_t *ob = gr->obj_bei(i);
 			if(ob->get_typ()==obj_t::pier){
-				ret |= ((pier_t*)ob)->get_above_ribi();
+				if(((pier_t*)ob)->get_above_way_supplement()){
+					supplement |= ((pier_t*)ob)->get_above_ribi();
+				}else{
+					ret |= ((pier_t*)ob)->get_above_ribi();
+				}
 			}
 		}
+	}
+	if(ret){
+		ret |= supplement;
 	}
 	return ret;
 }
@@ -178,6 +214,16 @@ uint64 pier_t::get_support_mask_total(const grund_t *gr){
 }
 
 uint16 pier_t::get_speed_limit_deck_total(const grund_t *gr, uint16 maxspeed){
+	if(gr){
+		for(uint8 i = 0; i < gr->get_top(); i++){
+			obj_t *ob = gr->obj_bei(i);
+			if(ob->get_typ()==obj_t::pier){
+				if(((pier_t*)ob)->get_low_waydeck() && maxspeed > ((pier_t*)ob)->get_maxspeed()){
+					maxspeed = ((pier_t*)ob)->get_maxspeed();
+				}
+			}
+		}
+	}
 	gr=ground_below(gr);
 	if(gr){
 		for(uint8 i = 0; i < gr->get_top(); i++){
@@ -207,6 +253,16 @@ uint32 pier_t::get_deck_obj_mask_total(const grund_t *gr){
 }
 
 uint16 pier_t::get_max_axle_load_deck_total(const grund_t *gr, uint16 maxload){
+	if(gr){
+		for(uint8 i = 0; i < gr->get_top(); i++){
+			obj_t *ob = gr->obj_bei(i);
+			if(ob->get_typ()==obj_t::pier){
+				if(((pier_t*)ob)->get_low_waydeck() && maxload > ((pier_t*)ob)->get_axle_load()){
+					maxload = ((pier_t*)ob)->get_axle_load();
+				}
+			}
+		}
+	}
 	gr=ground_below(gr);
 	if(gr){
 		for(uint8 i = 0; i < gr->get_top(); i++){

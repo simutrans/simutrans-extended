@@ -56,6 +56,9 @@ void pier_writer_t::write_obj(FILE * outfp, obj_node_t& parent, tabfileobj_t& ob
 	//place flags in extra bits of drag_ribi
 	drag_ribi |= obj.get_int("keep_dry",0) ? 0x10 : 0;
 	drag_ribi |= obj.get_int("bottom_only",0) ? 0x20 : 0;
+	drag_ribi |= obj.get_int("bottom_only",0) ? 0x20 : 0;
+	drag_ribi |= obj.get_int("above_way_supplement",0) ? 0x40 : 0;
+	drag_ribi |= obj.get_int("low_waydeck",0) ? 0x80 : 0;
 
 	uint16 max_speed			= obj.get_int("topspeed",0xFFFF);
 	uint16 max_axle_load		= obj.get_int("max_weight",0xFFFF);

@@ -22,8 +22,7 @@ private:
     image_id front_image;
 
     uint8_t rotation;
-
-    static const grund_t* ground_below(const grund_t *gr);
+    bool bad_load;
 
 protected:
     void rdwr(loadsave_t *file) override;
@@ -49,6 +48,10 @@ public:
     uint32 get_maxspeed() const {return desc->get_topspeed();}
     uint32 get_axle_load() const {return desc->get_max_axle_load();}
     uint32 get_deck_obj_mask() const {return desc->get_deck_obj_mask();}
+    bool get_low_waydeck() const {return  desc->get_low_waydeck();}
+    bool get_above_way_supplement() const {return  desc->get_above_way_supplement();}
+
+    bool is_bad_load() const {return bad_load;}
 
     //get the total for entire tile
     static ribi_t::ribi get_above_ribi_total(const grund_t* gr, bool gr_is_base=false);
@@ -64,6 +67,8 @@ public:
 
     static bool check_sub_masks(uint32 pier1, uint32 building1, uint32 pier2=0, uint32 building2=0);
     static const char* check_building(const building_desc_t* desc, koord3d pos);
+
+    static const grund_t* ground_below(const grund_t *gr);
 
     image_id get_image() const override;
     image_id get_front_image() const override;

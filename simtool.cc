@@ -6037,8 +6037,8 @@ const char *tool_build_pier_t::work(player_t *player, koord3d pos){
 			}else{
 				if(workingribi==ribi_t::northeast || workingribi==ribi_t::southwest){
 					if(kdiff.x!=kdiff.y){
-						if( (workingribi==ribi_t::northeast && kdiff.x==kdiff.y-1)
-							|| (workingribi==ribi_t::southwest && kdiff.x==kdiff.y+1)){
+						if( (workingribi==ribi_t::northeast && kdiff.x==kdiff.y+1)
+							|| (workingribi==ribi_t::southwest && kdiff.x==kdiff.y-1)){
 							rotation^=2;
 						}else{
 							return NULL;
@@ -6046,8 +6046,8 @@ const char *tool_build_pier_t::work(player_t *player, koord3d pos){
 					}
 				}else{
 					if(-kdiff.x!=kdiff.y){
-						if( (workingribi==ribi_t::northwest && -kdiff.x==kdiff.y-1)
-							|| (workingribi==ribi_t::southeast && -kdiff.x==kdiff.y+1)){
+						if( (workingribi==ribi_t::northwest && -kdiff.x==kdiff.y+1)
+							|| (workingribi==ribi_t::southeast && -kdiff.x==kdiff.y-1)){
 							rotation^=2;
 						}else{
 							return NULL;
@@ -6055,6 +6055,9 @@ const char *tool_build_pier_t::work(player_t *player, koord3d pos){
 					}
 				}
 			}
+		}
+		if(is_ctrl_pressed()){
+			pier_builder_t::get_desc_from_tos(pdsc,rotation,pos,player,dragbegin.z,pos.z==dragbegin.z);
 		}
 	}
 

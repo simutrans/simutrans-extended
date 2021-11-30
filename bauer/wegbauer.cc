@@ -930,7 +930,7 @@ bool way_builder_t::is_allowed_step( const grund_t *from, const grund_t *to, sin
 			//check for below mask of pier on top
 			if(grund_t *to2 = welt->lookup( to->get_pos() + koord3d(0, 0, 1) ) ){
 				if((!desc->is_low_clearence()) || (bautyp&bautyp_mask)==leitung){
-					ribimask = pier_t::get_below_ribi_total(to);
+					ribimask = pier_t::get_below_ribi_total(to2);
 					if( (ribimask|ribi_t::backward(zvribi))!=ribimask){
 							return false;
 					}
@@ -939,7 +939,7 @@ bool way_builder_t::is_allowed_step( const grund_t *from, const grund_t *to, sin
 			}
 			if(grund_t *from2 = welt->lookup( from->get_pos() + koord3d(0, 0, 1) ) ){
 				if((desc->get_topspeed() > 0 && desc->get_waytype() != water_wt && desc->get_waytype() != road_wt && desc->get_waytype() != tram_wt) || (bautyp&bautyp_mask)==leitung){
-					ribimask = pier_t::get_below_ribi_total(from);
+					ribimask = pier_t::get_below_ribi_total(from2);
 					if( (ribimask|zvribi)!=ribimask){
 							return false;
 					}
@@ -948,7 +948,7 @@ bool way_builder_t::is_allowed_step( const grund_t *from, const grund_t *to, sin
 		}
 		if(to->get_typ()==grund_t::pierdeck){
 			ribimask=pier_t::get_above_ribi_total(to);
-			if((ribimask&zv.to_ribi())!=zv.to_ribi()){
+			if((ribimask&ribi_t::backward(zvribi))!=ribi_t::backward(zvribi)){
 				return false;
 			}
 			uint32 deckmask=pier_t::get_deck_obj_mask_total(to);
@@ -958,7 +958,7 @@ bool way_builder_t::is_allowed_step( const grund_t *from, const grund_t *to, sin
 		}
 		if(from->get_typ()==grund_t::pierdeck){
 			ribimask=pier_t::get_above_ribi_total(from);
-			if((ribimask&ribi_t::backward(zv.to_ribi()))!=ribi_t::backward(zv.to_ribi())){
+			if((ribimask&zvribi)!=zvribi){
 				return false;
 			}
 			uint32 deckmask=pier_t::get_deck_obj_mask_total(from);
