@@ -494,7 +494,7 @@ schedule_list_gui_t::schedule_list_gui_t(player_t *player_) :
 	info_tabs.add_tab(&scroll_times_history, translator::translate("times_history"));
 
 	cont_tab_haltlist.set_table_layout(1,0);
-	bt_show_halt_name.init(button_t::square_state, "Show station names");
+	bt_show_halt_name.init(button_t::square_state, "show station names");
 	bt_show_halt_name.set_tooltip("helptxt_show_station_name");
 	bt_show_halt_name.pressed=true;
 	bt_show_halt_name.add_listener(this);

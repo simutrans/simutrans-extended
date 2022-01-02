@@ -27,6 +27,7 @@
 #include "boden/wege/strasse.h"
 #include "boden/tunnelboden.h"
 #include "boden/monorailboden.h"
+#include "boden/pier_deck.h"
 
 #include "simdepot.h"
 #include "simsignalbox.h"
@@ -957,7 +958,7 @@ DBG_MESSAGE("tool_remover()", "removing way");
 	}
 
 	// remove empty tile
-	if(  !gr->ist_karten_boden()  &&  gr->get_top()==0  && gr->get_typ()!=grund_t::typ::pierdeck) {
+	if(  !gr->ist_karten_boden()  &&  gr->get_top()==0  && (gr->get_typ()!=grund_t::typ::pierdeck || ((pier_deck_t*)gr)->get_is_dummy())) {
 		// unmark kartenboden (is marked during underground mode deletion)
 		welt->lookup_kartenboden(k)->clear_flag(grund_t::marked);
 		// remove upper or lower ground
@@ -5915,7 +5916,19 @@ image_id tool_build_pier_t::get_icon(player_t *) const {
 
 const char *tool_build_pier_t::get_tooltip(const player_t *) const{
 	if(const pier_desc_t *desc = get_desc()){
-		return tooltip_with_price_maintenance(welt,desc->get_name(),-desc->get_value(),desc->get_maintenance());
+		tooltip_with_price_maintenance(welt,desc->get_name(),-desc->get_value(),desc->get_maintenance());
+		size_t n = strlen(toolstr);
+		n += sprintf(toolstr+n, " %s", translator::translate("per tile"));
+		if(desc->get_topspeed()!=0xFFFF){
+			n+=sprintf(toolstr+n, " %dkm/h",desc->get_topspeed());
+		}
+		if(desc->get_max_axle_load()!=0xFFFF){
+			n+=sprintf(toolstr+n, translator::translate(" %dt/axle"),desc->get_max_axle_load());
+		}
+		if(desc->get_low_waydeck()){
+			n+=sprintf(toolstr+n, " %s", translator::translate("(Through Truss)"));
+		}
+		return toolstr;
 	}
 	return "Invalid Pier";
 }
@@ -5992,7 +6005,6 @@ const char *tool_build_pier_t::work(player_t *player, koord3d pos){
 		return NULL;
 	}
 
-	//TODO make so buildable under runway height
 	const koord& k = pos.get_2d();
 
 	karte_t::runway_info ri = welt->check_nearby_runways(k);
@@ -6062,6 +6074,131 @@ const char *tool_build_pier_t::work(player_t *player, koord3d pos){
 	}
 
 	return pier_builder_t::build(player,pos,pdsc,rotation);
+}
+
+sint8 tool_build_pier_auto_t::pier_info::start_height = 2;
+
+const char* tool_build_pier_auto_t::get_tooltip(const player_t *) const{
+	//TODO get desc
+	char name[256]="";
+	uint32 i;
+	for(i=0; default_param[i]!=0  &&  default_param[i]!=','; i++) {
+		name[i]=default_param[i];
+	}
+	name[i]=0;
+	const pier_desc_t *tdesc=pier_builder_t::get_desc(name);
+	if(tdesc){
+		strcpy(name, translator::translate("Automatically build "));
+		strcat(name, translator::translate(tdesc->get_name()));
+		strcat(name," et Al.");
+		tooltip_with_price_maintenance(welt,name,-tdesc->get_value(),tdesc->get_maintenance());
+		size_t n = strlen(toolstr);
+		n += sprintf(toolstr+n, " %s", translator::translate("per tile apprx."));
+		if(tdesc->get_max_axle_load()!=0xFFFF){
+			n+=sprintf(toolstr+n, translator::translate(" %dt+/axle"),tdesc->get_max_axle_load());
+		}
+		if(tdesc->get_low_waydeck()){
+			n+=sprintf(toolstr+n, " %s", translator::translate("(Through Truss)"));
+		}
+		return toolstr;
+	}
+	return "Invalid Pier";
+}
+
+void tool_build_pier_auto_t::draw_after(scr_coord k, bool dirty) const{
+	if( icon !=IMG_EMPTY && is_selected()) {
+		display_img_blend( icon, k.x, k.y, TRANSPARENT50_FLAG|OUTLINE_FLAG|color_idx_to_rgb(COL_BLACK), false, dirty );
+		char level_str[16];
+		sprintf( level_str, "%i", pier_info::start_height);
+		display_proportional_rgb( k.x+2, k.y+2, level_str, ALIGN_LEFT, color_idx_to_rgb(COL_YELLOW), true );
+	}
+}
+
+char tool_build_pier_auto_t::toolstring[256];
+
+const char* tool_build_pier_auto_t::get_default_param(player_t *player) const{
+	if(desc && player){
+		sprintf(toolstring,"%s,%d",desc->get_name(), pier_info::start_height);
+		return  toolstring;
+	}
+	return default_param;
+}
+
+void tool_build_pier_auto_t::read_default_param(player_t *){
+	char name[256]="";
+	uint32 i;
+	for(i=0; default_param[i]!=0  &&  default_param[i]!=','; i++) {
+		name[i]=default_param[i];
+	}
+	name[i]=0;
+	desc = pier_builder_t::get_desc(name);
+
+	if(default_param[i]){
+		int sh;
+		sscanf(default_param+i, ",%d",&sh);
+		pier_info::start_height=sh;
+	}
+	if(default_param==toolstring){
+		default_param = desc->get_name();
+	}
+}
+
+bool tool_build_pier_auto_t::init(player_t *player){
+	read_default_param(player);
+
+	if(is_ctrl_pressed() && is_local_execution()){
+		create_win(new pier_height_select_t(player, this), w_info, (ptrdiff_t)this);
+	}
+	return two_click_tool_t::init(player) && (desc!=NULL);
+}
+
+bool tool_build_pier_auto_t::exit(player_t *player){
+	destroy_win((ptrdiff_t)this);
+	return two_click_tool_t::exit(player);
+}
+
+uint8 tool_build_pier_auto_t::is_valid_pos(player_t *, const koord3d &, const char *&error, const koord3d &){
+	error=NULL;
+	return 2;
+}
+
+void tool_build_pier_auto_t::mark_tiles(player_t *player, const koord3d &start, const koord3d &end){
+	vector_tpl<pier_builder_t::pier_route_elem> route;
+	if(!pier_builder_t::calc_route(route,player,desc,start,end,pier_info::start_height)){
+		return;
+	}
+	for( uint32 i = 0; i < route.get_count(); i++){
+		grund_t *gr = welt->lookup(route[i].pos);
+		if(!gr){
+			gr = new pier_deck_t(route[i].pos,0,0);
+			((pier_deck_t*)gr)->set_dummy();
+			welt->access(route[i].pos.get_2d())->boden_hinzufuegen(gr);
+		}
+		zeiger_t *pier = new zeiger_t(route[i].pos, player);
+		pier->set_image(route[i].desc->get_background(gr->get_grund_hang(),route[i].rotation,0));
+		marked.insert(pier);
+		gr->obj_add(pier);
+		pier->mark_image_dirty( pier->get_image(),0);
+
+	}
+}
+
+const char *tool_build_pier_auto_t::do_work( player_t *player, const koord3d &start, const koord3d &end){
+	vector_tpl<pier_builder_t::pier_route_elem> route;
+	if(!pier_builder_t::calc_route(route,player,desc,start,end,pier_info::start_height)){
+		return "Could not find valid route";
+	}
+
+	const char *msg = NULL;
+	for(uint32 i = 0; i < route.get_count(); i++){
+		const char *this_msg;
+		this_msg=pier_builder_t::build(player,route[i].pos,route[i].desc,route[i].rotation);
+		if(this_msg && msg==NULL){
+			msg=this_msg;
+		}
+	}
+
+	return msg;
 }
 
 uint16 tool_build_roadsign_t::signal_info::spacing = 16;
@@ -7660,17 +7797,19 @@ const char *tool_build_factory_t::work( player_t *player, koord3d pos )
 		int streetdir = 0;
                 // Convert 'neighbors' indices to SENW bits
 		static int const neighbours_to_senw[] = { 0x0c, 0x08, 0x09, 0x01, 0x03, 0x02, 0x06, 0x04 };
+                static int const neighbours_to_diag[] = { 4, 8, 1, 8, 1, 2, 4, 2 };
 		for(  int i = 1;  i < 8;  i+=2  ) {
 			grund_t *gr2 = welt->lookup_kartenboden(k + koord::neighbours[i]);
 			if(  gr2  &&  gr2->get_weg_hang() == gr2->get_grund_hang()  &&  gr2->get_weg(road_wt) != NULL  ) {
-				streetdir |= neighbours_to_senw[i];
+                          streetdir |= neighbours_to_senw[i];
 			}
 		}
                 if (streetdir == 0) { // No adjacent streets; check diagonally
                   for(  int i = 0;  i < 8;  i+=2  ) {
                     grund_t *gr2 = welt->lookup_kartenboden(k + koord::neighbours[i]);
                     if(  gr2  &&  gr2->get_weg_hang() == gr2->get_grund_hang()  &&  gr2->get_weg(road_wt) != NULL  ) {
-                      streetdir |= neighbours_to_senw[i];
+                      int ribi_ns = ((int)gr2->get_weg_ribi_unmasked(road_wt) & 0x05) ? 1 : 0;
+                      streetdir |= neighbours_to_diag[ i + ribi_ns ];
                     }
                   }
                 }

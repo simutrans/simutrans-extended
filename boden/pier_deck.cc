@@ -10,11 +10,11 @@
 pier_deck_t::pier_deck_t(koord3d pos, slope_t::type grund_slope, slope_t::type way_slope) : grund_t(pos)
 {
     slope = grund_slope;
+    is_dummy=false;
     this->way_slope = way_slope;
-
 }
 
-void pier_deck_t::calc_image_internal(const bool calc_only_snowline_change){
+void pier_deck_t::calc_image_internal(const bool){
 	clear_back_image();
 	set_image(IMG_EMPTY);
 }

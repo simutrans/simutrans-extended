@@ -209,7 +209,7 @@ void signal_info_t::update_data()
 			if (gb) {
 				bt_goto_signalbox.set_visible(true);
 				bt_info_signalbox.set_visible(true);
-				bt_switch_signalbox.set_visible(sig->get_player_nr() == welt->get_active_player()->get_player_nr());
+				bt_switch_signalbox.set_visible(sig->get_owner_nr() == welt->get_active_player()->get_player_nr());
 			}
 		}
 	}
@@ -247,7 +247,7 @@ bool signal_info_t::action_triggered(gui_action_creator_t *comp, value_t)
 				if (gb)
 				{
 					gr->get_building()->show_info();
-					if (sig->get_player_nr() == welt->get_active_player()->get_player_nr())
+					if (sig->get_owner_nr() == welt->get_active_player()->get_player_nr())
 					{
 						welt->get_active_player()->set_selected_signalbox(static_cast<signalbox_t *>(gb));
 					}
@@ -256,7 +256,7 @@ bool signal_info_t::action_triggered(gui_action_creator_t *comp, value_t)
 			return true;
 		}
 	}
-	if(  comp==&bt_switch_signalbox && sig->get_player_nr()==welt->get_active_player()->get_player_nr()  ) {
+	if(  comp==&bt_switch_signalbox && sig->get_owner_nr()==welt->get_active_player()->get_player_nr()  ) {
 		destroy_win( magic_signal_connector_gui_t );
 		create_win( new signal_connector_gui_t(sig), w_info, magic_signal_connector_gui_t );
 		return true;

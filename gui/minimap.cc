@@ -1439,11 +1439,11 @@ void minimap_t::draw(scr_coord pos)
 		needs_redraw = false;
 	}
 
-	if( map_data==nullptr) {
+	if( map_data==NULL) {
 		return;
 	}
 
-	if(  mode & MAP_PAX_DEST  &&  selected_city!=nullptr  ) {
+	if(  mode & MAP_PAX_DEST  &&  selected_city!=NULL  ) {
 		const uint32 current_pax_destinations = selected_city->get_pax_destinations_new_change();
 		if(  pax_destinations_last_change > current_pax_destinations  ) {
 			// new month started.

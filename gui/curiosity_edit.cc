@@ -25,12 +25,13 @@
 // new tool definition
 tool_build_house_t curiosity_edit_frame_t::haus_tool=tool_build_house_t();
 cbuffer_t curiosity_edit_frame_t::param_str;
+bool curiosity_edit_frame_t::sortreverse = false;
 
 
 static bool compare_building_desc(const building_desc_t* a, const building_desc_t* b)
 {
 	int diff = strcmp( a->get_name(), b->get_name() );
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_name(const building_desc_t* a, const building_desc_t* b)
 {
@@ -38,7 +39,7 @@ static bool compare_building_desc_name(const building_desc_t* a, const building_
 	if(  diff==0  ) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_visitor_demands(const building_desc_t* a, const building_desc_t* b)
 {
@@ -47,7 +48,7 @@ static bool compare_building_desc_visitor_demands(const building_desc_t* a, cons
 	if (diff == 0) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_jobs(const building_desc_t* a, const building_desc_t* b)
 {
@@ -55,7 +56,7 @@ static bool compare_building_desc_jobs(const building_desc_t* a, const building_
 	if (diff == 0) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_level_mail(const building_desc_t* a, const building_desc_t* b)
 {
@@ -64,7 +65,7 @@ static bool compare_building_desc_level_mail(const building_desc_t* a, const bui
 	if(  diff==0  ) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_date_intro(const building_desc_t* a, const building_desc_t* b)
 {
@@ -72,7 +73,7 @@ static bool compare_building_desc_date_intro(const building_desc_t* a, const bui
 	if(  diff==0  ) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_date_retire(const building_desc_t* a, const building_desc_t* b)
 {
@@ -80,7 +81,7 @@ static bool compare_building_desc_date_retire(const building_desc_t* a, const bu
 	if(  diff==0  ) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 static bool compare_building_desc_size(const building_desc_t* a, const building_desc_t* b)
 {
@@ -94,7 +95,7 @@ static bool compare_building_desc_size(const building_desc_t* a, const building_
 	if(  diff==0  ) {
 		diff = strcmp(a->get_name(), b->get_name());
 	}
-	return diff < 0;
+	return curiosity_edit_frame_t::sortreverse ? diff > 0 : diff < 0;
 }
 
 curiosity_edit_frame_t::curiosity_edit_frame_t(player_t* player_) :
@@ -151,6 +152,7 @@ void curiosity_edit_frame_t::put_item_in_list( const building_desc_t* desc )
 	const sint32 month_now = bt_timeline.pressed ? welt->get_current_month() : bt_timeline_custom.pressed ? ni_timeline_year.get_value()*12 + ni_timeline_month.get_value()-1 : 0;
 	const uint8 chosen_climate = get_climate();
 	const uint8 sortedby = get_sortedby();
+	sortreverse = sort_order.pressed;
 	if( (!use_timeline  ||  (!desc->is_future(month_now)  &&  (!desc->is_retired(month_now)  ||  allow_obsolete)) )
 		&&  ( desc->get_allowed_climate_bits() & chosen_climate) ) {
 		// timeline allows for this, and so does climates setting

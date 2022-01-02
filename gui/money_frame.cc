@@ -879,7 +879,7 @@ void money_frame_t::update_stats()
 	}
 	// - depot & vehicle
 	FOR(slist_tpl<depot_t*>, const depot, depot_t::get_depot_list()) {
-		if (depot->get_player_nr() == player->get_player_nr()) {
+		if (depot->get_owner_nr() == player->get_player_nr()) {
 			const uint8 tt_idx = finance_t::translate_waytype_to_tt(depot->get_waytype())-1;
 			tt_depot_counts[tt_idx]++;
 			total_depot_maintenance += welt->get_settings().maint_building * depot->get_tile()->get_desc()->get_level();

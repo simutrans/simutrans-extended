@@ -69,6 +69,7 @@ public:
     static const char* check_building(const building_desc_t* desc, koord3d pos);
 
     static const grund_t* ground_below(const grund_t *gr);
+    static const grund_t* ground_below(koord3d pos);
 
     image_id get_image() const override;
     image_id get_front_image() const override;

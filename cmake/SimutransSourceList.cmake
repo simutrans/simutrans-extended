@@ -190,7 +190,6 @@ target_sources(simutrans-extended PRIVATE
 	gui/overtaking_mode.cc
 	gui/pakselector.cc
 	gui/password_frame.cc
-	gui/pedestrian_info.cc
 	gui/player_frame_t.cc
 	gui/privatesign_info.cc
 	gui/replace_frame.cc
@@ -207,7 +206,8 @@ target_sources(simutrans-extended PRIVATE
 	gui/signal_spacing.cc
 	gui/signalboxlist_frame.cc
 	gui/simwin.cc
-	gui/sound_frame.cc
+	gui/slim_obj_info.cc
+  gui/sound_frame.cc
 	gui/sprachen.cc
 	gui/station_building_select.cc
 	gui/themeselector.cc
@@ -218,7 +218,8 @@ target_sources(simutrans-extended PRIVATE
 	gui/vehicle_class_manager.cc
 	gui/way_info.cc
 	gui/welt.cc
-	gui/pier_rotation_select.cc
+	gui/water_info.cc
+  gui/pier_rotation_select.cc
 	io/raw_image.cc
 	io/raw_image_bmp.cc
 	io/raw_image_png.cc

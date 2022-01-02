@@ -20,7 +20,7 @@
 
 #include "boden/wasser.h"
 
-static main_view_t *welt_ansicht = NULL;
+static main_view_t *main_view = NULL;
 
 
 static long last_time;
@@ -75,7 +75,7 @@ void intr_refresh_display(bool dirty)
 {
 	wasser_t::prepare_for_refresh();
 	dr_prepare_flush();
-	welt_ansicht->display( dirty );
+	main_view->display( dirty );
 	if(  env_t::player_finance_display_account  ) {
 		win_display_flush( (double)world()->get_active_player()->get_finance()->get_account_balance()/100.0 );
 	}
@@ -118,7 +118,7 @@ void interrupt_check(const char* caller_info)
 
 void intr_set_view(main_view_t *view)
 {
-	welt_ansicht = view;
+	main_view = view;
 	last_time = dr_time();
 	enabled = true;
 }

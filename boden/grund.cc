@@ -46,6 +46,7 @@
 #include "../obj/zeiger.h"
 
 #include "../gui/ground_info.h"
+#include "../gui/water_info.h"
 #include "../gui/way_info.h"
 #include "../gui/minimap.h"
 
@@ -635,7 +636,12 @@ void grund_t::show_info()
 		return;
 	}
 	if(env_t::ground_info) {
-		create_win(new grund_info_t(this), w_info, (ptrdiff_t)this);
+		if( is_water() ){
+			create_win(new water_info_t("Water", get_pos()), w_info, (ptrdiff_t)this);
+		}
+		else {
+			create_win(new grund_info_t(this), w_info, (ptrdiff_t)this);
+		}
 	}
 }
 
@@ -677,9 +683,8 @@ void grund_t::info(cbuffer_t& buf) const
 			}
 			if (maker) {
 				buf.printf(translator::translate("Constructed by %s"), maker);
-				buf.append("\n");
+				buf.append("\n\n");
 			}
-			buf.append("\n");
 			// second way
 			has_way = true;
 			if(flags&has_way2) {
@@ -3135,4 +3140,12 @@ wayobj_t *grund_t::get_wayobj( waytype_t wt ) const
 		}
 	}
 	return NULL;
+}
+
+
+bool grund_t::is_dummy_ground() const
+{
+	return (get_typ() == grund_t::tunnelboden  ||  get_typ() == grund_t::monorailboden)
+		&&  !hat_wege()
+		&&  get_leitung() == NULL;
 }

@@ -802,7 +802,7 @@ void convoi_t::add_running_cost(sint64 cost, const weg_t *weg)
 {
 	jahresgewinn += cost;
 
-	if(weg && weg->get_owner() != get_owner() && weg->get_owner() != NULL && (!welt->get_settings().get_toll_free_public_roads() || (weg->get_waytype() != road_wt || weg->get_player_nr() != 1)))
+	if(weg && weg->get_owner() != get_owner() && weg->get_owner() != NULL && (!welt->get_settings().get_toll_free_public_roads() || (weg->get_waytype() != road_wt || weg->get_owner_nr() != 1)))
 	{
 		// running on non-public way costs toll (since running costs are positive => invert)
 		sint32 toll = -(cost * welt->get_settings().get_way_toll_runningcost_percentage()) / 100l;
@@ -862,7 +862,7 @@ void convoi_t::increment_odometer(uint32 steps)
 		}
 		else
 		{
-			player = way->get_player_nr();
+			player = way->get_owner_nr();
 		}
 	}
 
@@ -5776,11 +5776,11 @@ sint64 convoi_t::calc_revenue(const ware_t& ware, array_tpl<sint64> & apportione
  */
 void convoi_t::hat_gehalten(halthandle_t halt)
 {
-	grund_t *gr=welt->lookup(front()->get_pos());
+	grund_t *gr = welt->lookup(front()->get_pos());
 
 	// now find out station length
 	uint16 vehicles_loading=0;
-	if(  gr->is_water()  ||  gr->hat_weg(water_wt)  ) {
+	if(vehicle[0]->get_desc()->get_waytype() == water_wt) {
 		// harbour has any size
 		vehicles_loading = vehicle_count;
 	}

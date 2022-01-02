@@ -55,7 +55,7 @@ depot_frame_t::depot_frame_t(depot_t* depot) :
 	icnv(depot->convoi_count()-1),
 	lb_convois(NULL, SYSCOL_TEXT, gui_label_t::left),
 	lb_convoi_line("Serves Line:", SYSCOL_TEXT, gui_label_t::left),
-	convoy_assembler(depot->get_wegtyp(), depot->get_player_nr(), check_way_electrified(true) )
+	convoy_assembler(depot->get_wegtyp(), depot->get_owner_nr(), check_way_electrified(true) )
 {
 DBG_DEBUG("depot_frame_t::depot_frame_t()","get_max_convoi_length()=%i",depot->get_max_convoi_length());
 	last_selected_line = depot->get_last_selected_line();

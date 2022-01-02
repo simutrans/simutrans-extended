@@ -3381,7 +3381,6 @@ void stadt_t::merke_passagier_ziel(koord k, PIXVAL color)
 	{
 		pax_destinations_new.set(position, color);
 	}
-
 	pax_destinations_new_change ++;
 }
 
@@ -5095,10 +5094,10 @@ bool stadt_t::build_road(const koord k, player_t* player_, bool forced, bool map
 		bool allow_deletion = true;
 
 		const weg_t* runway = bd->get_weg(air_wt);
-		allow_deletion &= !runway || (runway->get_player_nr() == PLAYER_UNOWNED && runway->get_max_speed() == 0);
+		allow_deletion &= !runway || (runway->get_owner_nr() == PLAYER_UNOWNED && runway->get_max_speed() == 0);
 
 		const weg_t* waterway = bd->get_weg(water_wt);
-		allow_deletion &= !waterway || (!waterway->is_public_right_of_way() && waterway->get_player_nr() == PLAYER_UNOWNED && waterway->is_degraded());
+		allow_deletion &= !waterway || (!waterway->is_public_right_of_way() && waterway->get_owner_nr() == PLAYER_UNOWNED && waterway->is_degraded());
 
 		if (!allow_deletion)
 		{
@@ -5172,7 +5171,7 @@ bool stadt_t::build_road(const koord k, player_t* player_, bool forced, bool map
 			ribi_t::ribi r = sch->get_ribi_unmasked();
 			if (!ribi_t::is_straight(r)) {
 				// no building on crossings, curves, dead ends unless this is an unowned degraded way
-				if (!(sch->get_player_nr() == PLAYER_UNOWNED && sch->is_degraded()))
+				if (!(sch->get_owner_nr() == PLAYER_UNOWNED && sch->is_degraded()))
 				{
 					return false;
 				}

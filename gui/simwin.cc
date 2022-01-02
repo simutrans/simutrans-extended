@@ -80,7 +80,6 @@ class inthashtable_tpl<ptrdiff_t,scr_coord, N_BAGS_MEDIUM> old_win_pos;
 // hash-table: magic number to windowsize
 class inthashtable_tpl<ptrdiff_t, scr_size, N_BAGS_MEDIUM> saved_windowsizes;
 
-#define dragger_size 12
 
 // I added a button to the map window to fix it's size to the best one.
 // This struct is the flow back to the object of the refactoring.
@@ -389,7 +388,8 @@ static void win_draw_window_dragger(scr_coord pos, scr_size size)
 		display_color_img( dragger->get_id(), pos.x-dragger->get_pic()->w, pos.y-dragger->get_pic()->h, 0, false, false);
 	}
 	else {
-		for(  int x=0;  x<dragger_size;  x++  ) {
+		int dragger_size = min(D_DRAGGER_WIDTH, D_DRAGGER_HEIGHT);
+		for(  int x=1;  x<dragger_size;  x++  ) {
 			display_fillbox_wh_clip_rgb( pos.x-x, pos.y-dragger_size+x, x, 1, color_idx_to_rgb((x & 1) ? COL_BLACK : MN_GREY4), true);
 		}
 	}
@@ -877,7 +877,7 @@ int create_win(scr_coord_val x, scr_coord_val y, gui_frame_t* const gui, wintype
 		if (x == -1) {
 			move_to_full_view = true;
 			x = get_mouse_x() - gui->get_windowsize().w / 2;
-			y = get_mouse_y() - gui->get_windowsize().h / 2;
+			y = get_mouse_y() - gui->get_windowsize().h - get_tile_raster_width()/4;
 		}
 
 		// make sure window is on screen
@@ -905,8 +905,8 @@ static void process_kill_list()
 {
 	FOR(vector_tpl<simwin_t>, & i, kill_list) {
 		if (inside_event_handling != i.gui) {
-			wins.remove(i);
 			destroy_framed_win(&i);
+			wins.remove(i);
 		}
 	}
 	kill_list.clear();
@@ -1494,11 +1494,14 @@ bool check_pos_win(event_t *ev)
 		tool_t::toolbar_tool[0]->get_tool_selector()->is_hit(x-menuoffset.x, y-menuoffset.y)  &&
 		y > menuoffset.y+D_TITLEBAR_HEIGHT  &&
 		ev->ev_class != EVENT_KEYBOARD) {
+
 		event_t wev = *ev;
-		translate_event(&wev, -menuoffset.x, -menuoffset.y);
+		wev.move_origin(menuoffset);
+
 		inside_event_handling = tool_t::toolbar_tool[0];
 		tool_t::toolbar_tool[0]->get_tool_selector()->infowin_event( &wev );
 		inside_event_handling = NULL;
+
 		// swallow event
 		return true;
 	}
@@ -1655,8 +1658,8 @@ bool check_pos_win(event_t *ev)
 
 					// resizer hit ?
 					const bool canresize = is_resizing>=0  ||
-												(ev->cx > wins[i].pos.x + size.w - dragger_size  &&
-												 ev->cy > wins[i].pos.y + size.h - dragger_size);
+												(ev->cx > wins[i].pos.x + size.w - D_DRAGGER_WIDTH  &&
+												 ev->cy > wins[i].pos.y + size.h - D_DRAGGER_HEIGHT);
 
 					if((IS_LEFTCLICK(ev)  ||  IS_LEFTDRAG(ev)  ||  IS_LEFTREPEAT(ev))  &&  canresize  &&  wins[i].gui->get_resizemode()!=gui_frame_t::no_resize) {
 						resize_win( i, ev );
@@ -1666,7 +1669,7 @@ bool check_pos_win(event_t *ev)
 						is_resizing = -1;
 						// click in Window
 						event_t wev = *ev;
-						translate_event(&wev, -wins[i].pos.x, -wins[i].pos.y);
+						wev.move_origin(wins[i].pos);
 						wins[i].gui->infowin_event( &wev );
 					}
 				}
@@ -1703,7 +1706,7 @@ void win_poll_event(event_t* const ev)
 		}
 		wl->set_dirty();
 		wl->get_viewport()->metrics_updated();
-		ev->ev_class = EVENT_NONE;
+		ev->ev_class = IGNORE_EVENT;
 	}
 	// save and reload all windows (currently only used when a new theme is applied)
 	if(  ev->ev_class==EVENT_SYSTEM  &&  ev->ev_code==SYSTEM_RELOAD_WINDOWS  ) {
@@ -1720,7 +1723,7 @@ void win_poll_event(event_t* const ev)
 			}
 		}
 		wl->set_dirty();
-		ev->ev_class = EVENT_NONE;
+		ev->ev_class = IGNORE_EVENT;
 		ticker::redraw();
 	}
 	if(  ev->ev_class==EVENT_SYSTEM  &&  ev->ev_code==SYSTEM_THEME_CHANGED  ) {
@@ -1729,7 +1732,7 @@ void win_poll_event(event_t* const ev)
 		FOR(vector_tpl<simwin_t>, const& i, wins) {
 			i.gui->infowin_event(ev);
 		}
-		ev->ev_class = EVENT_NONE;
+		ev->ev_class = IGNORE_EVENT;
 		ticker::redraw();
 	}
 }

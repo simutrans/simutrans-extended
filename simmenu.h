@@ -82,6 +82,7 @@ enum {
 	TOOL_BUILD_SIGNALBOX=0x0080,
 	TOOL_REASSIGN_SIGNAL,
 	TOOL_BUILD_PIER,
+	TOOL_BUILD_PIER_AUTO,
 	GENERAL_TOOL_COUNT,
 	GENERAL_TOOL = 0x1000
 };
@@ -194,6 +195,7 @@ enum {
 	TOOLBAR_TOOL = 0x8000u
 };
 
+
 class tool_t {
 public:
 	image_id icon;
@@ -207,6 +209,10 @@ protected:
 	const char *default_param;
 public:
 	uint16 get_id() const { return id; }
+
+	const char *get_name() const { return id_to_string(id); }
+
+	static const char *id_to_string(uint16 id);
 
 	static tool_t *dummy;
 
@@ -262,7 +268,9 @@ public:
 	static void init_menu();
 	static void exit_menu();
 
-	static void read_menu(const std::string &objfilename);
+	/// Read tool, toolbar configuration and tool shortcuts from @p menuconf
+	/// @param menuconf Path to file to read
+	static bool read_menu(const std::string &menuconf);
 
 	static uint16 const dummy_id = 0xFFFFU;
 

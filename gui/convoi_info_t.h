@@ -68,8 +68,10 @@ private:
 	gui_loadingbar_t loading_bar;
 	gui_speedbar_t speed_bar;
 	gui_routebar_t route_bar;
-	gui_image_t img_reverse_route;
+	sint32 next_reservation_index;
 	gui_chart_t chart;
+	gui_image_t img_reverse_route;
+
 	button_t button;
 	button_t follow_button;
 	button_t go_home_button;

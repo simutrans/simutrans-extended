@@ -423,13 +423,19 @@ auto_connect_industries_and_attractions_by_road = 4
 # Settings made here will override player preferences set in the Display settings UI.
 # Do not set these parameters in simuconf unless you know exactly what you are doing!
 
-### GUI settings ###
+#################################### GUI settings ####################################
 # show graphs old style (right to left) or rather left to right (default)
 #left_to_right_graphs  = 1
 
 # You can use a system font. BUT you must specify the whole path to it!
 # This can be only set in the user defined simuconf.tab
 #fontname=C:\Windows\fonts\arial.ttf
+
+# if run on a mobile device, setting hide_keyboard=1 will only show the keyboard
+# when there is text to input in a dialoge. Other than that textinput will not
+# be possible (no keyboard short cuts).
+# Currently only supported with SDL2
+hide_keyboard = 0
 
 # Position of the main menu bar (0=top, 1=left, 2=bottom, 3=right)
 #menubar_position = 0
@@ -438,7 +444,16 @@ auto_connect_industries_and_attractions_by_road = 4
 #reselect_closes_tool = 1
 
 
-### Map view ###
+##################################### Map view #####################################
+# Draw the earth slope to mark the border (default 1 on)
+draw_earth_border = 1
+
+# Tile the outside with the ground.ouside.pak (default 0 off)
+draw_outside_tile = 0
+
+# Color of background default: COL_GREY2 (210)
+#background_color = 210
+
 # If set to 1 (default) the numpad will always move the map.
 # if set to 0, it will always produce numbers
 #numpad_always_moves_map = 1
@@ -479,6 +494,12 @@ show_month = 8
 # loading and waiting at signals too
 #show_vehicle_states = 1
 
+# If and where to display a compass
+# 0=off (default for main screen)
+# 1=top, 2=vertical centre, 3=bottom, 4=left, 8=horizontal centre, 12=right
+# default for minimap is 1+12=13
+compass_screen_position = 0
+compass_map_position = 13
 
 ################################# Vehicle display settings #################################
 
@@ -553,11 +574,11 @@ default_citycar_life = 36
 
 # Show infos on trees?
 # (1=on, 0=off)
-tree_info = 1
+#tree_info = 1
 
 # Show infos also on bare ground?
 # (1=on, 0=off)
-ground_info = 1
+#ground_info = 1
 
 # Show passenger level of townhalls?
 # (1=on, 0=off)
@@ -577,64 +598,6 @@ show_delete_buttons = 1
 
 # Should stations get numbered names? (1=yes, 0=no)
 #numbered_stations = 0
-
-# Color of cursor overlay, which is blended over marked ground tiles
-# The available colors and their numbers can be found on
-#    http://simutrans-germany.com/wiki/wiki/tiki-index.php?page=en_FactoryDef#mapcolor
-# Suggested values (155 is the default)
-# -- pak64, pak.german, pak128
-#cursor_overlay_color = 155
-# -- pak128.japan
-#cursor_overlay_color = 149
-
-# Color of background default: COL_GREY2 (210)
-#background_color = 210
-
-# there are three different ways to indicate an active window
-
-# first: draw a frame with titlebar color around active window
-#window_frame_active = 0
-
-# second: draw the title with a different brighness (0: dark ... 6: bright)
-front_window_bar_color = 1
-bottom_window_bar_color = 3
-
-# third (best together with 2nd):use different text color for bar
-# some colors are 215-white, 240-blck 208-214- all shades of gray
-front_window_text_color = 215
-bottom_window_text_color = 209
-
-# when moving, you can use windows to snap onto each other seamlessly
-# if you do not like it, set the catch radius to zero
-window_snap_distance = 8
-
-# show tooltips (default 1=show)
-show_tooltips = 1
-
-# tooltip background color (+-1 arounf this index is used), taken from playercolor table
-tooltip_background_color = 4
-
-# tooltip text color (240=black, 215=white)
-tooltip_text_color = 240
-
-# delay before showing tooltip in ms (default 500ms)
-tooltip_delay = 500
-
-# duration in ms during tooltip is visible (default 5000ms=5s)
-tooltip_duration = 5000
-
-# if run on a mobile device, setting hide_keyboard=1 will only show the keyboard
-# when there is text to input in a dialoge. Other than that textinput will not
-# be possible (no keyboard short cuts).
-# Currently only supported with SDL2
-hide_keyboard = 0
-
-# If and where to display a compass
-# 0=off (default for main screen)
-# 1=top, 2=vertical centre, 3=bottom, 4=left, 8=horizontal centre, 12=right
-# default for minimap is 1+12=13
-compass_screen_position = 0
-compass_map_position = 13
 
 # Should either account (default) or net wealth be shown below the screen?
 player_finance_display_account = 1

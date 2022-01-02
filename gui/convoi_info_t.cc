@@ -307,7 +307,7 @@ void convoi_info_t::init(convoihandle_t cnv)
 
 	switch_mode.add_tab(&scroll_times_history, translator::translate("times_history"));
 
-	cnv->set_sortby(env_t::default_sortmode);
+	cnv->set_sortby( env_t::default_sortmode );
 
 	speed_bar.set_base(max_convoi_speed);
 	speed_bar.set_vertical(false);
@@ -315,6 +315,10 @@ void convoi_info_t::init(convoihandle_t cnv)
 
 	// we update this ourself!
 	route_bar.init(&cnv_route_index, 0);
+	if( cnv->get_vehicle_count()>0  &&  dynamic_cast<rail_vehicle_t *>(cnv->front()) ) {
+		// only for trains etc.
+		route_bar.set_reservation( &next_reservation_index );
+	}
 	route_bar.set_height(9);
 
 	update_labels();
@@ -628,6 +632,7 @@ void convoi_info_t::draw(scr_coord pos, scr_size size)
 	{
 		destroy_win(this);
 	}
+	next_reservation_index = cnv->get_next_reservation_index();
 
 	// make titlebar dirty to display the correct coordinates
 	if(cnv->get_owner()==welt->get_active_player()  &&  !welt->get_active_player()->is_locked()) {

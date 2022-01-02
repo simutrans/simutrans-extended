@@ -16,7 +16,7 @@ using std::string;
 
 void pier_writer_t::write_obj(FILE * outfp, obj_node_t& parent, tabfileobj_t& obj)
 {
-	obj_node_t node(this, 68, &parent);
+	obj_node_t node(this, 76, &parent);
 	write_head(outfp, node,obj);
 
 	uint32 price					= obj.get_int("cost", 0);
@@ -35,7 +35,7 @@ void pier_writer_t::write_obj(FILE * outfp, obj_node_t& parent, tabfileobj_t& ob
     uint8 above_way_ribi     = obj.get_int("above_way_ribi",0);
     uint8 below_way_ribi     = obj.get_int("below_way_ribi",0);
 
-    uint8 auto_group         = obj.get_int("auto_group",0);
+    uint32 auto_group         = obj.get_int("auto_group",0);
     uint8 auto_height        = obj.get_int("auto_height",0);
 
     uint32 base_mask         = obj.get_int("base_mask",0);
@@ -67,7 +67,7 @@ void pier_writer_t::write_obj(FILE * outfp, obj_node_t& parent, tabfileobj_t& ob
 
 	version |= EX_VER;
 
-	version += 0x200; //Version number of node times 0x100
+	version += 0x300; //Version number of node times 0x100
 
 	node.write_uint16(outfp, version,					0);
 	node.write_uint32(outfp, price,						2);
@@ -82,7 +82,7 @@ void pier_writer_t::write_obj(FILE * outfp, obj_node_t& parent, tabfileobj_t& ob
 	node.write_uint32(outfp, support_mask,				25);
 	node.write_uint32(outfp, sub_obj_mask,				29);
 	node.write_uint32(outfp, deck_obj_mask,				33);
-	node.write_uint8(outfp,	auto_group,					37);
+	node.write_uint8(outfp,	0,							37); //old auto_group
 	node.write_uint8(outfp, auto_height,				38);
 
 	uint8 seasons=2;
@@ -111,6 +111,9 @@ void pier_writer_t::write_obj(FILE * outfp, obj_node_t& parent, tabfileobj_t& ob
 
 	node.write_uint16(outfp, max_speed,      64);
 	node.write_uint16(outfp, max_axle_load,  66);
+
+	node.write_uint32(outfp, auto_group,     68);
+	node.write_uint32(outfp, 0,			     72); //extra for future use
 
 	slist_tpl<string> backkeys;
 	slist_tpl<string> frontkeys;

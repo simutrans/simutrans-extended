@@ -111,7 +111,7 @@ public:
 	image_id get_icon(player_t *) const OVERRIDE{ return /*player && player->is_public_service() ? IMG_EMPTY :*/ icon; }
 	bool is_selected() const OVERRIDE{ return win_get_magic(magic_line_management_t + welt->get_active_player_nr()); }
 	bool init(player_t* player) OVERRIDE{
-	if (true /*player->get_player_nr() != 1*/) {
+	if (true /*!player->is_public_service()*/) {
 		create_win(new schedule_list_gui_t(player), w_info, magic_line_management_t + player->get_player_nr());
 		}
 		return false;

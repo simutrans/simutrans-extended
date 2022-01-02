@@ -41,8 +41,8 @@ void pier_t::calc_image(){
 		front_image=desc->get_foreground(gr->get_grund_hang(), rotation, snow);
 	}else{ //assuming flat
 		if(get_low_waydeck() && gr->get_weg_nr(0)){
-			back_image=desc->get_background(43,rotation, snow);
-			front_image=desc->get_foreground(43,rotation, snow);
+			back_image=desc->get_background(pier_desc_t::low_waydeck_image,rotation, snow);
+			front_image=desc->get_foreground(pier_desc_t::low_waydeck_image,rotation, snow);
 		}else{
 			back_image=desc->get_background(0,rotation,snow);
 			front_image=desc->get_foreground(0,rotation, snow);
@@ -105,7 +105,7 @@ void pier_t::rotate90(){
 }
 
 const char *pier_t::is_deletable(const player_t *player){
-	if (get_player_nr()==welt->get_public_player()->get_player_nr()) {
+	if (get_owner_nr()==welt->get_public_player()->get_player_nr()) {
 		return NULL;
 	}
 	if(grund_t *gr = welt->lookup(get_pos())){
@@ -120,13 +120,20 @@ const char *pier_t::is_deletable(const player_t *player){
 }
 
 const grund_t* pier_t::ground_below(const grund_t *gr){
-	koord3d pos=gr->get_pos();
-	gr = welt->lookup(pos + koord3d(0,0,-1));
+	return ground_below(gr->get_pos());
+}
+
+const grund_t* pier_t::ground_below(koord3d pos){
+	const grund_t* gr = welt->lookup(pos + koord3d(0,0,-1));
 	if(!gr){
 		gr = welt->lookup(pos + koord3d(0,0,-2));
+		if(gr && slope_t::max_diff(gr->get_grund_hang()) != 2){
+			return NULL;
+		}
 	}
 	return gr;
 }
+
 
 ribi_t::ribi pier_t::get_above_ribi_total(const grund_t *gr, bool gr_is_base){
 	ribi_t::ribi ret=ribi_t::none;

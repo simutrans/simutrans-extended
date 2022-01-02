@@ -40,8 +40,6 @@ class building_desc_t;
 #define MAX_CITY_HISTORY_YEARS  (12) // number of years to keep history
 #define MAX_CITY_HISTORY_MONTHS (12) // number of months to keep history
 
-#define PAX_DESTINATIONS_SIZE (256) // size of the minimap in the city window (sparse array)
-
 #define CITY_NAME_LABEL_WIDTH (126)	// size of
 
 enum city_cost {

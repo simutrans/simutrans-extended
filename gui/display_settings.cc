@@ -55,8 +55,6 @@ enum {
 	IDBTN_CLASSES_WAITING_BAR,
 	IDBTN_SHOW_DEPOT_NAME,
 	IDBTN_SHOW_FACTORY_STORAGE,
-	IDBTN_SHOW_PRIVATECAR_INFO,
-	IDBTN_SHOW_PEDESTRIAN_INFO,
 	COLORS_MAX_BUTTONS,
 };
 
@@ -129,6 +127,52 @@ gui_settings_t::gui_settings_t()
 	reselect_closes_tool.init( button_t::square_state, "Reselect closes tools" );
 	reselect_closes_tool.pressed = env_t::reselect_closes_tool;
 	add_component( &reselect_closes_tool, 2 );
+
+	new_component<gui_divider_t>();
+
+	// window pop-up controll
+	new_component<gui_label_t>("Information windows pop up control:");
+	add_table(5,0)->set_spacing(scr_size(0,D_V_SPACE));
+	{
+		for (uint8 i=0; i<4; i++) {
+			info_window_toggler[i*2].init(  button_t::roundbox_left_state,  "hl_btn_filter_enable",  scr_coord(0,0), D_BUTTON_SIZE );
+			info_window_toggler[i*2+1].init(button_t::roundbox_right_state, "hl_btn_filter_disable", scr_coord(0,0), D_BUTTON_SIZE );
+		}
+
+		new_component<gui_margin_t>(LINESPACE);
+		new_component<gui_label_t>("ground_info")->set_tooltip(translator::translate("helptxt_ground_info_toggler"));
+		new_component<gui_margin_t>(D_H_SPACE);
+		info_window_toggler[0].pressed =  env_t::ground_info;
+		info_window_toggler[1].pressed = !env_t::ground_info;
+		add_component(&info_window_toggler[0]);
+		add_component(&info_window_toggler[1]);
+
+		// tree, rock, birds
+		new_component<gui_margin_t>(LINESPACE);
+		new_component<gui_label_t>("tree_info")->set_tooltip(translator::translate("helptxt_tree_info_toggler"));
+		new_component<gui_margin_t>(D_H_SPACE);
+		info_window_toggler[2].pressed =  env_t::tree_info;
+		info_window_toggler[3].pressed = !env_t::tree_info;
+		add_component(&info_window_toggler[2]);
+		add_component(&info_window_toggler[3]);
+
+		new_component<gui_margin_t>(LINESPACE);
+		new_component<gui_label_t>("Private car")->set_tooltip(translator::translate("can open a dedicated window by clicking on a private car."));
+		new_component<gui_margin_t>(D_H_SPACE);
+		info_window_toggler[4].pressed = env_t::road_user_info & 1;
+		info_window_toggler[5].pressed = !info_window_toggler[4].pressed;
+		add_component(&info_window_toggler[4]);
+		add_component(&info_window_toggler[5]);
+
+		new_component<gui_margin_t>(LINESPACE);
+		new_component<gui_label_t>("Fussgaenger")->set_tooltip(translator::translate("can open a dedicated window by clicking on a pedestrian."));
+		new_component<gui_margin_t>(D_H_SPACE);
+		info_window_toggler[6].pressed = env_t::road_user_info & 2;
+		info_window_toggler[7].pressed = !info_window_toggler[6].pressed;
+		add_component(&info_window_toggler[6]);
+		add_component(&info_window_toggler[7]);
+	}
+	end_table();
 
 	new_component<gui_divider_t>();
 
@@ -731,18 +775,6 @@ traffic_settings_t::traffic_settings_t()
 	traffic_density.add_listener(this);
 	add_component(&traffic_density);
 
-	// Show private car info
-	buttons[IDBTN_SHOW_PRIVATECAR_INFO].init(button_t::square_state, "Show the private car information window");
-	buttons[IDBTN_SHOW_PRIVATECAR_INFO].set_tooltip("can open a dedicated window by clicking on a private car.");
-	buttons[IDBTN_SHOW_PRIVATECAR_INFO].pressed = env_t::road_user_info & 1;
-	add_component(buttons + IDBTN_SHOW_PRIVATECAR_INFO, 2);
-
-	// Show pedestrian info
-	buttons[IDBTN_SHOW_PEDESTRIAN_INFO].init(button_t::square_state, "Show the pedestrian information window");
-	buttons[IDBTN_SHOW_PEDESTRIAN_INFO].set_tooltip("can open a dedicated window by clicking on a pedestrian.");
-	buttons[IDBTN_SHOW_PEDESTRIAN_INFO].pressed = env_t::road_user_info & 2;
-	add_component(buttons + IDBTN_SHOW_PEDESTRIAN_INFO, 2);
-
 	// Convoy follow mode
 	new_component<gui_label_t>("Convoi following mode")->set_tooltip(translator::translate("Select the behavior of the camera when the following convoy enters the tunnel."));
 
@@ -766,7 +798,7 @@ bool traffic_settings_t::action_triggered( gui_action_creator_t *comp, value_t v
 {
 	// Traffic density edit
 	if( &traffic_density == comp ) {
-		if( !env_t::networkmode || world()->get_active_player_nr() == 1 ) {
+		if( !env_t::networkmode || world()->get_active_player_nr() == PUBLIC_PLAYER_NR ) {
 			static char level[ 16 ];
 			sprintf( level, "%li", v.i );
 			tool_t::simple_tool[ TOOL_TRAFFIC_LEVEL & 0xFFF ]->set_default_param( level );
@@ -811,6 +843,9 @@ color_gui_t::color_gui_t() :
 	for( uint8 i = 0; i < 4; i++ ) {
 		gui_settings.toolbar_pos[i].add_listener(this);
 	}
+	for (uint8 i = 0; i < 8; i++) {
+		gui_settings.info_window_toggler[i].add_listener(this);
+	}
 	gui_settings.reselect_closes_tool.add_listener(this);
 
 	set_resizemode(diagonal_resize);
@@ -820,7 +855,7 @@ color_gui_t::color_gui_t() :
 	resize( scr_coord( 0, 0 ) );
 }
 
-bool color_gui_t::action_triggered( gui_action_creator_t *comp, value_t )
+bool color_gui_t::action_triggered( gui_action_creator_t *comp, value_t)
 {
 	bool reflesh_toolbar_pos_btn = false;
 	for(  uint8 i=0; i<4; i++  ) {
@@ -850,6 +885,33 @@ bool color_gui_t::action_triggered( gui_action_creator_t *comp, value_t )
 		return true;
 	}
 
+	if (comp == &gui_settings.info_window_toggler[0] || comp == &gui_settings.info_window_toggler[1]) {
+		gui_settings.info_window_toggler[0].pressed = (comp == &gui_settings.info_window_toggler[0]);
+		gui_settings.info_window_toggler[1].pressed = !gui_settings.info_window_toggler[0].pressed;
+		env_t::ground_info = gui_settings.info_window_toggler[0].pressed;
+		return true;
+	}
+	if (comp == &gui_settings.info_window_toggler[2] || comp == &gui_settings.info_window_toggler[3]) {
+		gui_settings.info_window_toggler[2].pressed = (comp == &gui_settings.info_window_toggler[2]);
+		gui_settings.info_window_toggler[3].pressed = !gui_settings.info_window_toggler[2].pressed;
+		env_t::tree_info = gui_settings.info_window_toggler[2].pressed;
+		return true;
+	}
+	if (comp == &gui_settings.info_window_toggler[4] || comp == &gui_settings.info_window_toggler[5]) {
+		env_t::road_user_info &= ~1;
+		if (comp == &gui_settings.info_window_toggler[4]) { env_t::road_user_info |= 1; }
+		gui_settings.info_window_toggler[4].pressed = (comp == &gui_settings.info_window_toggler[4]);
+		gui_settings.info_window_toggler[5].pressed = !gui_settings.info_window_toggler[4].pressed;
+		return true;
+	}
+	if (comp == &gui_settings.info_window_toggler[6] || comp == &gui_settings.info_window_toggler[7]) {
+		env_t::road_user_info &= ~2;
+		if (comp == &gui_settings.info_window_toggler[6]) { env_t::road_user_info |= 2; }
+		gui_settings.info_window_toggler[6].pressed = (comp == &gui_settings.info_window_toggler[6]);
+		gui_settings.info_window_toggler[7].pressed = !gui_settings.info_window_toggler[6].pressed;
+		return true;
+	}
+
 	int i;
 	for(  i=0;  i<COLORS_MAX_BUTTONS  &&  comp!=buttons+i;  i++  ) { }
 
@@ -863,22 +925,14 @@ bool color_gui_t::action_triggered( gui_action_creator_t *comp, value_t )
 		env_t::scroll_multi = -env_t::scroll_multi;
 		break;
 	case IDBTN_PEDESTRIANS_AT_STOPS:
-		if( !env_t::networkmode || welt->get_active_player_nr() == 1 ) {
+		if( !env_t::networkmode || welt->get_active_player_nr() == PUBLIC_PLAYER_NR ) {
 			welt->set_tool( tool_t::simple_tool[ TOOL_TOOGLE_PAX & 0xFFF ], welt->get_active_player() );
 		}
 		break;
 	case IDBTN_PEDESTRIANS_IN_TOWNS:
-		if( !env_t::networkmode || welt->get_active_player_nr() == 1 ) {
+		if( !env_t::networkmode || welt->get_active_player_nr() == PUBLIC_PLAYER_NR ) {
 			welt->set_tool( tool_t::simple_tool[ TOOL_TOOGLE_PEDESTRIANS & 0xFFF ], welt->get_active_player() );
 		}
-		break;
-	case IDBTN_SHOW_PRIVATECAR_INFO:
-		env_t::road_user_info = env_t::road_user_info ^ 1;
-		buttons[IDBTN_SHOW_PRIVATECAR_INFO].pressed = env_t::road_user_info&1;
-		break;
-	case IDBTN_SHOW_PEDESTRIAN_INFO:
-		env_t::road_user_info = env_t::road_user_info ^ 2;
-		buttons[IDBTN_SHOW_PEDESTRIAN_INFO].pressed = env_t::road_user_info&2;
 		break;
 	case IDBTN_HIDE_TREES:
 		env_t::hide_trees = !env_t::hide_trees;

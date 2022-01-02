@@ -206,7 +206,7 @@ void interaction_t::interactive_event( const event_t &ev )
 					bool ok=false;
 					FOR(vector_tpl<tool_t*>, const i, tool_t::char_to_tool) {
 						if(  i->command_key == ev.ev_code  ) {
-							if(  i->command_flags == 0  ||  (ev.ev_key_mod & 3) == i->command_flags  ) {
+							if(  i->command_flags == 0  ||  (ev.ev_key_mod & (SIM_MOD_SHIFT|SIM_MOD_CTRL)) == i->command_flags  ) {
 								world->set_tool(i, world->get_active_player());
 								ok = true;
 								break;
@@ -399,12 +399,12 @@ bool interaction_t::process_event( event_t &ev )
 		}
 		world->get_viewport()->set_follow_convoi( convoihandle_t() );
 		move_view(ev);
-		ev.ev_code = EVENT_NONE;
+		ev.ev_code = IGNORE_EVENT;
 	}
 
 	if(  IS_LEFTRELEASE(&ev)  &&  left_drag  ) {
 		// show the mouse and swallow this event if we were dragging before
-		ev.ev_code = EVENT_NONE;
+		ev.ev_code = IGNORE_EVENT;
 		display_show_pointer(true);
 		left_drag = false;
 	}

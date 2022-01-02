@@ -128,31 +128,7 @@ public:
 	 * if a function return here a value with TRANSPARENT_FLAGS set
 	 * then a transparent outline with the color form the lower 8 Bit is drawn
 	 */
-	virtual FLAGGED_PIXVAL get_outline_colour() const OVERRIDE
-	{
-		uint8 reservation_colour;
-		switch(type)
-		{
-		case block:
-		default:
-			reservation_colour = COL_RED;
-			break;
-
-		case directional:
-			reservation_colour = COL_BLUE;
-			break;
-
-		case priority:
-			reservation_colour = COL_YELLOW;
-			break;
-#ifdef DEBUG
-		case stale_block:
-			reservation_colour = COL_DARK_RED;
-			break;
-#endif
-		};
-		return (show_reservations  &&  reserved.is_bound()) ? TRANSPARENT75_FLAG | OUTLINE_FLAG | color_idx_to_rgb(reservation_colour) : 0;
-	}
+	virtual FLAGGED_PIXVAL get_outline_colour() const OVERRIDE;
 
 	/*
 	 * to show reservations if needed

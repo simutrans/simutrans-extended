@@ -178,6 +178,7 @@ void simline_t::set_name(const char *new_name)
 
 void simline_t::create_schedule()
 {
+	recalc_status();
 	switch(type) {
 		case simline_t::truckline:       set_schedule(new truck_schedule_t()); break;
 		case simline_t::trainline:       set_schedule(new train_schedule_t()); break;

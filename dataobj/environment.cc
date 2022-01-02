@@ -242,8 +242,8 @@ void env_t::init()
 
 	road_user_info = 1;
 	tree_info = true;
-	ground_info = false;
-	townhall_info = false;
+	ground_info = true;
+	townhall_info = true;
 	single_info = true;
 
 	window_buttons_right = false;

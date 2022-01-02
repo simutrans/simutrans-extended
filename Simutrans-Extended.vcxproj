@@ -2011,9 +2011,10 @@
     <ClCompile Include="gui\onewaysign_info.cc" />
     <ClCompile Include="gui\overtaking_mode.cc" />
     <ClCompile Include="gui\obj_info.cc" />
-    <ClCompile Include="gui\pedestrian_info.cc" />
+    <ClCompile Include="gui\slim_obj_info.cc" />
     <ClCompile Include="gui\privatesign_info.cc" />
     <ClCompile Include="gui\scenario_info.cc" />
+    <ClCompile Include="gui\water_info.cc" />
     <ClCompile Include="gui\server_frame.cc" />
     <ClCompile Include="gui\signal_connector_gui.cc" />
     <ClCompile Include="gui\signal_info.cc" />
@@ -2589,10 +2590,11 @@
     <ClInclude Include="gui\onewaysign_info.h" />
     <ClInclude Include="gui\overtaking_mode.h" />
     <ClInclude Include="gui\obj_info.h" />
-    <ClInclude Include="gui\pedestrian_info.h" />
     <ClInclude Include="gui\pier_rotation_select.h" />
+    <ClInclude Include="gui\slim_obj_info.h" />
     <ClInclude Include="gui\privatesign_info.h" />
     <ClInclude Include="gui\scenario_info.h" />
+    <ClInclude Include="gui\water_info.h" />
     <ClInclude Include="gui\server_frame.h" />
     <ClInclude Include="gui\signal_connector_gui.h" />
     <ClInclude Include="gui\signal_info.h" />

@@ -89,6 +89,10 @@ obj_desc_t * pier_reader_t::read_node(FILE *fp, obj_node_info_t &node){
         desc->topspeed = decode_uint16(p);
         desc->axle_load = decode_uint16(p);
     }
+    if(sub_version>=3){
+        desc->auto_group = decode_uint32(p);
+        decode_uint32(p);
+    }
 
     shufflemask(desc->support_mask);
     shufflemask(desc->middle_mask);

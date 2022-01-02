@@ -579,8 +579,6 @@ void settings_general_stats_t::init(settings_t const* const sets)
 	INIT_NUM( "random_grounds_probability", env_t::ground_object_probability, 0, 0x7FFFFFFFul, gui_numberinput_t::POWER2, false );
 	INIT_NUM( "random_wildlife_probability", env_t::moving_object_probability, 0, 0x7FFFFFFFul, gui_numberinput_t::POWER2, false );
 	SEPERATOR
-	INIT_BOOL( "tree_info", env_t::tree_info );
-	INIT_BOOL( "ground_info", env_t::ground_info );
 	INIT_BOOL( "townhall_info", env_t::townhall_info );
 	INIT_BOOL( "only_single_info", env_t::single_info );
 	SEPERATOR
@@ -669,8 +667,6 @@ void settings_general_stats_t::read(settings_t* const sets)
 	READ_NUM_VALUE( env_t::ground_object_probability );
 	READ_NUM_VALUE( env_t::moving_object_probability );
 
-	READ_BOOL_VALUE( env_t::tree_info );
-	READ_BOOL_VALUE( env_t::ground_info );
 	READ_BOOL_VALUE( env_t::townhall_info );
 	READ_BOOL_VALUE( env_t::single_info );
 

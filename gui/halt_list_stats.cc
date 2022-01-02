@@ -286,7 +286,7 @@ void gui_halt_stats_t::update_table()
 				lb->buf().printf("%.1f%%", job_demand ? 100.0 * halt->get_around_employee_factor() / job_demand : 0.0);
 				lb->init(SYSCOL_TEXT, gui_label_t::right);
 				lb->set_fixed_width(proportional_string_width("188.8%"));
-				lb->set_tooltip(translator::translate("visiting_trip_success_rete_of_this_stop_coverage"));
+				lb->set_tooltip(translator::translate("Staffing"));
 				lb->update();
 				const uint8 bar_scale = HISTBAR_SCALE_FACTOR * world()->get_settings().get_jobs_per_level()*3;
 				new_component<gui_colorbox_t>()->init(color_idx_to_rgb(COL_COMMUTER), scr_size(min(256, (job_demand + (bar_scale-1)) / bar_scale), D_LABEL_HEIGHT * 2 / 3), true, false);
@@ -310,7 +310,7 @@ void gui_halt_stats_t::update_table()
 				lb->buf().printf("%.1f%%", visitor_generated ? 100.0*halt->get_around_succeeded_visiting() / visitor_generated : 0.0);
 				lb->init(SYSCOL_TEXT, gui_label_t::right);
 				lb->set_fixed_width(proportional_string_width("188.8%"));
-				lb->set_tooltip(translator::translate("visiting_trip_success_rete_of_this_stop_coverage"));
+				lb->set_tooltip(translator::translate("visiting_trip_success_rete"));
 				lb->update();
 
 				new_component<gui_colorbox_t>(color_idx_to_rgb(COL_COMMUTER))->set_size(scr_size(LINESPACE/2+2, LINESPACE/2+2));
@@ -319,7 +319,7 @@ void gui_halt_stats_t::update_table()
 				lb->buf().printf("%.1f%%", commuter_generated ? 100.0*halt->get_around_succeeded_commuting() / commuter_generated : 0.0);
 				lb->init(SYSCOL_TEXT, gui_label_t::right);
 				lb->set_fixed_width(proportional_string_width("188.8%"));
-				lb->set_tooltip(translator::translate("commuting_trip_success_rete_of_this_stop_coverage"));
+				lb->set_tooltip(translator::translate("commuting_trip_success_rete"));
 				lb->update();
 
 				const uint8 bar_scale = HISTBAR_SCALE_FACTOR * world()->get_settings().get_population_per_level()*3;
@@ -342,7 +342,7 @@ void gui_halt_stats_t::update_table()
 				lb->buf().printf("%.1f%%", mail_generated ? 100.0*halt->get_around_mail_delivery_succeeded()/mail_generated : 0.0);
 				lb->init(SYSCOL_TEXT, gui_label_t::right);
 				lb->set_fixed_width(proportional_string_width("188.8%"));
-				lb->set_tooltip(translator::translate("mail_deliverd_success_rete_of_this_stop_coverage"));
+				lb->set_tooltip(translator::translate("ratio_mail"));
 				lb->update();
 
 				const uint8 bar_scale = HISTBAR_SCALE_FACTOR * world()->get_settings().get_mail_per_level()*6;

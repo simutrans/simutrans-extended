@@ -14,11 +14,12 @@ class pier_deck_t : public grund_t
 {
 private:
     slope_t::type way_slope;
+    bool is_dummy;
 protected:
     void calc_image_internal(const bool calc_only_snowline_change) override;
 
 public:
-    pier_deck_t(loadsave_t *file, koord pos) : grund_t(koord3d(pos,0) ) {rdwr(file); }
+    pier_deck_t(loadsave_t *file, koord pos) : grund_t(koord3d(pos,0) ) {rdwr(file); is_dummy=false;}
     pier_deck_t(koord3d pos, slope_t::type grund_slope, slope_t::type way_slope);
 
     ~pier_deck_t() {
@@ -38,6 +39,9 @@ public:
     typ get_typ() const override {return pierdeck; }
 
     void info(cbuffer_t &buf) const override;
+
+    void set_dummy(bool dummy=true) {is_dummy=dummy;}
+    bool get_is_dummy(){return is_dummy;}
 };
 
 #endif // PIER_DECK_H

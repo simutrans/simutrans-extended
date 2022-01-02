@@ -2312,9 +2312,9 @@ sint64 way_builder_t::calc_costs() {
 				}
 			}
 
-			sint64 forge_cost = upgrading ? 0 : welt->get_settings().get_forge_cost(desc->get_waytype());
+			sint64 forge_cost = (upgrading || gr->get_typ()==grund_t::pierdeck) ? 0 : welt->get_settings().get_forge_cost(desc->get_waytype());
 
-			if(!upgrading && !(bautyp & tunnel_flag) && !(bautyp & elevated_flag) && route.get_count() > 1)
+			if(!upgrading && gr->get_typ()!=grund_t::pierdeck && !(bautyp & tunnel_flag) && !(bautyp & elevated_flag) && route.get_count() > 1)
 			{
 				for(int n = 0; n < 8; n ++)
 				{

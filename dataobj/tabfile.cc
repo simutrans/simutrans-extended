@@ -171,14 +171,28 @@ int tabfileobj_t::get_int(const char *key, int def)
 	if(!value) {
 		return def;
 	}
-	else {
-		// skip spaces/tabs
-		while ( *value>0  &&  *value<=32  ) {
-			value ++;
-		}
-		// this inputs also hex correct
-		return strtol( value, NULL, 0 );
+
+	// skip spaces/tabs
+	while ( *value>0  &&  *value<=32  ) {
+		value ++;
 	}
+
+	// this inputs also hex correct
+	return strtol( value, NULL, 0 );
+}
+
+
+int tabfileobj_t::get_int_clamped(const char *key, int def, int min_value, int max_value)
+{
+	const int int_value = get_int(key, def);
+	const int clamped_value = clamp(int_value, min_value, max_value);
+
+	if (clamped_value != int_value) {
+		dbg->warning("tabfileobj_t::get_int_clamped()", "Value %d for key %s out of range %d..%d, resetting to %d",
+			int_value, key, min_value, max_value, clamped_value);
+	}
+
+	return clamped_value;
 }
 
 
@@ -448,7 +462,7 @@ bool tabfile_t::read(tabfileobj_t &objinfo, FILE *fp)
 							strcpy(delim_expand, delim);
 						}
 
-						printf("%s = %s\n", line_expand, delim_expand);
+						dbg->message("tabfile_t::read", "Parameter expansion %s = %s\n", line_expand, delim_expand);
 						objinfo.put(line_expand, delim_expand);
 						if (fp != NULL) {
 							fprintf(fp, "%s=%s\n", line_expand, delim_expand);
@@ -533,7 +547,7 @@ int tabfile_t::find_parameter_expansion(char *key, char *data, int *parameters, 
 		else if (!isalpha(*s) && !isdigit(*s) && *s != '_' && *s != '.') {
 			// only allow [a-zA-Z0-9_.] in keys ('.' is required for city rules)
 			dbg->error("tabfile_t::find_parameter_expansion",
-				"Found invalid character %c in key of parameter expansion (Only alphanumeric characters, '.' and '_' allowed)", *s);
+				"Found invalid character '%c' in key of parameter expansion (Only alphanumeric characters, '.' and '_' allowed)", *s);
 			return 0;
 		}
 	}
