@@ -97,7 +97,7 @@ jobs:
           cp ./artifacts/makeobj-${{matrix.buildtype}}-nightly/makeobj-extended${{matrix.suffix}} ./${{matrix.os}}/makeobj-extended${{matrix.suffix}}
           cp ./artifacts/nettool-${{matrix.buildtype}}-nightly/nettool-extended${{matrix.suffix}} ./${{matrix.os}}/nettool-extended${{matrix.suffix}}
 
-      - run: zip ./${{matrix.os}}.zip ./${{matrix.os}}/
+      - run: zip -r ./${{matrix.os}}.zip ./${{matrix.os}}/
 
       - name: Deploy
         uses: svenstaro/upload-release-action@v2
