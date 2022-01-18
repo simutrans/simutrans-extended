@@ -520,7 +520,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ github.job }}-nightly
-          path: build/makeobj/makeobj-extended.exe
+          path: build/makeobj/Release/makeobj-extended.exe
 
 
   nettool-windows:
@@ -554,4 +554,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ github.job }}-nightly
-          path: build/nettools/nettool-extended.exe
+          path: build/nettools/Release/nettool-extended.exe
